@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -O3 -fno-tree-vectorize
 
-CFILES = shapley_values.c utils.c runfile.c
-CHEADERS = shapley_values.h utils.h runfile.h
+CFILES = shapley_values.c utils.c runfile.c benchmark.c
+CHEADERS = shapley_values.h utils.h runfile.h benchmark.h
 FILES = $(CFILES) $(CHEADERS)
 
 GITREV = $(shell git log -1 --format=%h)

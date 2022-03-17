@@ -7,6 +7,7 @@
 #include "shapley_values.h"
 #include "utils.h"
 #include "runfile.h"
+#include "benchmark.h"
 
 // Public vars
 run_variables_t run_variables = {
@@ -34,16 +35,8 @@ int main(int argc, char *argv[]){
     // Print header and save run information
     intro(argc, argv, &run_variables);
 
-    add_benchmark(run_variables.runfile, rand());
-    add_benchmark(run_variables.runfile, rand());
-    add_benchmark(run_variables.runfile, rand());
-    add_benchmark(run_variables.runfile, rand());
-    add_benchmark(run_variables.runfile, rand());
-    add_benchmark(run_variables.runfile, rand());
-    add_benchmark(run_variables.runfile, rand());
-    add_benchmark(run_variables.runfile, rand());
-
-
+    // Run and record benchmarks
+    start_benchmark(&run_variables);
 
     // Close and save runfile
     close_runfile(run_variables.runfile);
