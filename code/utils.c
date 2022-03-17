@@ -5,8 +5,6 @@
 
 #include "utils.h"
 
-extern int NUMBER_OF_RUNS;
-
 char *exec_and_get_output(char *cmd){
     char cmd_redirect[512];
     
@@ -30,7 +28,35 @@ char *exec_and_get_output(char *cmd){
 }
 
 
-void print_intro(int argc, char **argv){
+void parse_cmd_options(int argc, char **argv, run_variables_t *run_variables){
+    int i = 1;
+    while(i < argc){
+        if(strcmp(argv[i], "-q") == 0 || strcmp(argv[i], "--quiet") == 0){
+            run_variables->quiet = true;
+
+            i += 1;
+            continue;
+        }
+
+        if(strcmp(argv[i], "-N") == 0 || strcmp(argv[i], "--num-runs") == 0){
+            if(argc <= i+1){
+                printf("Error: Missing number of runs\n");
+                exit(1);
+            }
+
+            run_variables->number_of_runs = atoi(argv[i+1]);
+
+            i += 2;
+            continue;
+        }
+
+        printf("Error: Unknown argument '%s'\n", argv[i]);
+        exit(1);
+    }
+}
+
+
+void print_intro(int argc, char **argv, run_variables_t *run_variables){
     // Collect all command line arguments
     char args[1024] = {0};
     size_t offset = 0;
@@ -81,9 +107,9 @@ void print_intro(int argc, char **argv){
            CFLAGS,
            get_cpu_model(),
            (intel_turbo_boost_disabled() ? color("Disabled", GREEN) : color("Enabled", RED)),
-           "./run/1234.run",
+           run_variables->runfile,
            args,
-           NUMBER_OF_RUNS
+           run_variables->number_of_runs
     );
     for(size_t i=0; i<80; i++) { printf("-"); } printf("\n");
 
