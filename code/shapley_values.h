@@ -1,3 +1,9 @@
+#ifndef __SHAPLEY_VALUES_H__
+#define __SHAPLEY_VALUES_H__
+
+#include "utils.h"
+#include "runfile.h"
+
 #ifndef CC
 #error Compiler not set (compile e.g. using -DCC=gcc)
 #endif
@@ -19,3 +25,4 @@
 #endif
 
 
+#endif

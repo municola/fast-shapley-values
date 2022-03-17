@@ -16,7 +16,7 @@ run_variables_t run_variables = {
     .number_of_input_sizes = 0,
     .input_sizes = NULL,
     .runfile_path = "",
-    .runfile = NULL
+    .runfile = NULL,
 };
 
 
@@ -24,7 +24,7 @@ int main(int argc, char *argv[]){
     // Prepare log / runfile
     char runfile_name[64];
     mkdir("./run/", 0755);
-    sprintf(runfile_name, "./run/%u.json", time(NULL));
+    sprintf(runfile_name, "./run/%ld.json", time(NULL));
     run_variables.runfile_path = runfile_name;
     run_variables.runfile = calloc(1, sizeof(runfile_t));
 
@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
     }
 
     // Open and init runfile (after parsing argv!)
-    init_runfile(run_variables.runfile, runfile_name);
+    init_runfile(run_variables.runfile, runfile_name, run_variables.number_of_input_sizes);
 
     // Print header and save run information
     intro(argc, argv, &run_variables);
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
     start_benchmark(&run_variables);
 
     // Close and save runfile
-    close_runfile(run_variables.runfile);
+    close_runfile(run_variables.runfile, run_variables.input_sizes, run_variables.number_of_input_sizes);
 
     return 0;
 }

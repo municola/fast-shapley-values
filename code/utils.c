@@ -148,6 +148,8 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
            "Arguments:               %s\n\n"\
 
            "\033[1mBenchmark information:\033[0m\n"\
+           "Number of input sizes:   %d\n"\
+           "Input sizes:             %s\n"\
            "Number of runs:          %d\n"
 
            ,GITREV,
@@ -159,6 +161,8 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
            (intel_turbo_boost_disabled() ? color("Disabled", GREEN) : color("Enabled", RED)),
            run_variables->runfile_path,
            args,
+           run_variables->number_of_input_sizes,
+           tmpbuf,
            run_variables->number_of_runs
     );
     for(size_t i=0; i<80; i++) { printf("-"); } printf("\n");
