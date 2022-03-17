@@ -15,6 +15,9 @@ typedef enum COLOR COLOR;
 typedef struct run_variables {
     bool quiet;
     int number_of_runs;
+    int number_of_input_sizes;
+    int *input_sizes;
+
     char *runfile_path;
     runfile_t *runfile;
 

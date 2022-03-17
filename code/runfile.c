@@ -8,8 +8,8 @@
 
 void init_runfile(runfile_t *runfile, char *path){
     runfile->handle = fopen(path, "w");
-    runfile->run_infos = calloc(1, 1024*1024);
-    runfile->benchmarks = calloc(1, 1024*1024);
+    runfile->run_infos = calloc(1, 128*1024*1024);
+    runfile->benchmarks = calloc(1, 128*1024*1024);
     runfile->info_bytes = 0;
     runfile->benchmark_bytes = 0;
 }
@@ -22,6 +22,20 @@ void add_run_info(runfile_t *runfile, char *key, char *val){
     runfile->info_bytes += strlen(buf);
 }
 
+
+void add_run_info_int(runfile_t *runfile, char *key, int i){
+    char buf[1024];
+    sprintf(buf, "    \"%s\" : %d,\n", key, i);
+    strcpy(runfile->run_infos+runfile->info_bytes, buf);
+    runfile->info_bytes += strlen(buf);
+}
+
+void add_run_info_raw(runfile_t *runfile, char *key, char *val){
+    char buf[1024];
+    sprintf(buf, "    \"%s\" : %s,\n", key, val);
+    strcpy(runfile->run_infos+runfile->info_bytes, buf);
+    runfile->info_bytes += strlen(buf);
+}
 
 void add_benchmark(runfile_t *runfile, uint64_t cycles){
     char buf[1024];

@@ -39,13 +39,25 @@ void parse_cmd_options(int argc, char **argv, run_variables_t *run_variables){
             continue;
         }
 
-        if(strcmp(argv[i], "-N") == 0 || strcmp(argv[i], "--num-runs") == 0){
+        if(strcmp(argv[i], "-n") == 0 || strcmp(argv[i], "--num-runs") == 0){
             if(argc <= i+1){
                 printf("Error: Missing number of runs\n");
                 exit(1);
             }
 
             run_variables->number_of_runs = atoi(argv[i+1]);
+
+            i += 2;
+            continue;
+        }
+
+        if(strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--input-size") == 0){
+            if(argc <= i+1){
+                printf("Error: Missing input size\n");
+                exit(1);
+            }
+
+            run_variables->input_sizes[run_variables->number_of_input_sizes++] = atoi(argv[i+1]);
 
             i += 2;
             continue;
@@ -80,19 +92,31 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
     add_run_info(run_variables->runfile, "git_branch", GITBRANCH);
     add_run_info(run_variables->runfile, "compiler", CC);
     add_run_info(run_variables->runfile, "compiler_flags", CFLAGS);
-    add_run_info(run_variables->runfile, "debug",
+    add_run_info_raw(run_variables->runfile, "debug",
         #ifdef DEBUG
-        "True"
+        "true"
         #else
-        "False"
+        "false"
         #endif
     );
     snprintf(tmpbuf, strlen(get_cpu_model())-1, "%s", get_cpu_model()+1);
     add_run_info(run_variables->runfile, "cpu", tmpbuf);
-    add_run_info(run_variables->runfile, "turbo_boost_disabled", intel_turbo_boost_disabled() ? "True" : "False");
+    add_run_info_raw(run_variables->runfile, "turbo_boost_disabled", intel_turbo_boost_disabled() ? "true" : "false");
     add_run_info(run_variables->runfile, "arguments", args);
-    sprintf(tmpbuf, "%d", run_variables->number_of_runs);
-    add_run_info(run_variables->runfile, "num_runs", tmpbuf);
+    add_run_info_int(run_variables->runfile, "num_runs", run_variables->number_of_runs);
+    add_run_info_int(run_variables->runfile, "num_input_sizes", run_variables->number_of_input_sizes);
+
+    // Collect input sizes
+    offset = 1;
+    tmpbuf[0] = '[';
+    for(int i=0; i<run_variables->number_of_input_sizes; i++){
+        sprintf(tmpbuf+offset, "%d, ", run_variables->input_sizes[i]);
+        offset += strlen(tmpbuf+offset);
+    }
+    tmpbuf[strlen(tmpbuf) - 2] = ']';
+    tmpbuf[strlen(tmpbuf) - 1] = '\0';
+
+    add_run_info_raw(run_variables->runfile, "input_sizes", tmpbuf);
 
 
     // Print nice header, unless we should be quiet
