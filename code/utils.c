@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "utils.h"
+#include "runfile.h"
 
 char *exec_and_get_output(char *cmd){
     char cmd_redirect[512];
@@ -56,7 +57,7 @@ void parse_cmd_options(int argc, char **argv, run_variables_t *run_variables){
 }
 
 
-void print_intro(int argc, char **argv, run_variables_t *run_variables){
+void intro(int argc, char **argv, run_variables_t *run_variables){
     // Collect all command line arguments
     char args[1024] = {0};
     size_t offset = 0;
@@ -72,6 +73,31 @@ void print_intro(int argc, char **argv, run_variables_t *run_variables){
     } else {
         git_dirty = "modified";
     }
+
+    // Write collected info to the runfile:
+    char tmpbuf[512]; 
+    add_run_info(run_variables->runfile, "git_status", git_dirty);
+    add_run_info(run_variables->runfile, "git_branch", GITBRANCH);
+    add_run_info(run_variables->runfile, "compiler", CC);
+    add_run_info(run_variables->runfile, "compiler_flags", CFLAGS);
+    add_run_info(run_variables->runfile, "debug",
+        #ifdef DEBUG
+        "True"
+        #else
+        "False"
+        #endif
+    );
+    snprintf(tmpbuf, strlen(get_cpu_model())-1, "%s", get_cpu_model()+1);
+    add_run_info(run_variables->runfile, "cpu", tmpbuf);
+    add_run_info(run_variables->runfile, "turbo_boost_disabled", intel_turbo_boost_disabled() ? "True" : "False");
+    add_run_info(run_variables->runfile, "arguments", args);
+    sprintf(tmpbuf, "%d", run_variables->number_of_runs);
+    add_run_info(run_variables->runfile, "num_runs", tmpbuf);
+
+
+    // Print nice header, unless we should be quiet
+    if(run_variables->quiet)
+        return;
 
     printf("%s", bold("Efficient Shapley Value Computation\n"));
     for(size_t i=0; i<80; i++) { printf("-"); } printf("\n");
@@ -107,7 +133,7 @@ void print_intro(int argc, char **argv, run_variables_t *run_variables){
            CFLAGS,
            get_cpu_model(),
            (intel_turbo_boost_disabled() ? color("Disabled", GREEN) : color("Enabled", RED)),
-           run_variables->runfile,
+           run_variables->runfile_path,
            args,
            run_variables->number_of_runs
     );
