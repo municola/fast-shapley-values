@@ -24,10 +24,17 @@ void add_run_info(runfile_t *runfile, char *key, char *val){
 
 
 void add_benchmark(runfile_t *runfile, uint64_t cycles){
-
+    char buf[1024];
+    sprintf(buf, "        %u,\n", cycles);
+    strcpy(runfile->benchmarks+runfile->benchmark_bytes, buf);
+    runfile->benchmark_bytes += strlen(buf);
 }
 
+
 void close_runfile(runfile_t *runfile){
+    // Trim last benchmark data json
+    *(runfile->benchmarks+runfile->benchmark_bytes-2) = '\0';
+    
     fprintf(runfile->handle,
         "{\n"\
         "%s\n\n"\

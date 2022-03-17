@@ -34,6 +34,15 @@ int main(int argc, char *argv[]){
     // Print header and save run information
     intro(argc, argv, &run_variables);
 
+    add_benchmark(run_variables.runfile, rand());
+    add_benchmark(run_variables.runfile, rand());
+    add_benchmark(run_variables.runfile, rand());
+    add_benchmark(run_variables.runfile, rand());
+    add_benchmark(run_variables.runfile, rand());
+    add_benchmark(run_variables.runfile, rand());
+    add_benchmark(run_variables.runfile, rand());
+    add_benchmark(run_variables.runfile, rand());
+
 
 
     // Close and save runfile
