@@ -36,5 +36,5 @@ void start_benchmark(run_variables_t *run_variables){
 // Runs all the computations that should be measured and returns the number of cycles
 uint64_t measure_single_run(run_variables_t *run_variables, int input_size){
     usleep(10000);
-    return input_size;
+    return rand() % 60000;
 }

@@ -1,13 +1,16 @@
 import os
 import json
+import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from re import I
+from matplotlib import pyplot
+from statistics import median 
+import tempfile
 from threading import Thread
 from time import sleep
 
 # Read all runfiles
 runfiles_paths = []
-runfiles = []
+runfiles = {}
 runfiles_stripped = []
 
 for f in os.listdir("./run/"):
@@ -18,7 +21,7 @@ for f in os.listdir("./run/"):
         
         # Todo: Determine median / best, etc. here!
 
-        runfiles.append(rf)
+        runfiles[f] = rf
         runfiles_stripped.append({
             "name" : f,
             "input_sizes" : rf["input_sizes"],
@@ -65,19 +68,31 @@ header = """
 
 main = """
 <script>
-  document.addEventListener('DOMContentLoaded', (e) => {
-      var xhttp = new XMLHttpRequest();
-      xhttp.onreadystatechange = function() {
-          if (this.readyState == 4 && this.status == 200) {
-              var runfiles = JSON.parse(xhttp.responseText);
-              for(var i=0; i<runfiles["runfiles"].length; i++){
-                  document.getElementById("runfiles").innerHTML += '<tr><th scope="row">' + i + '</th><td>' + runfiles["runfiles"][i]["name"] + '</td><td>' + runfiles["runfiles"][i]["input_sizes"] + '</td><td>' + runfiles["runfiles"][i]["num_runs"] + '</td></tr>';
-              }
-          }
-      };
-      xhttp.open("GET", "/runfiles", true);
-      xhttp.send();
-  });
+    var to_plot = [];
+
+    function toggle_plot(name){
+        if(to_plot.includes(name)){
+            to_plot.splice(to_plot.indexOf(name), 1);
+        } else {
+            to_plot.push(name);
+        }
+
+        document.getElementById("plotwindow").innerHTML = '<img src="/plot/' + encodeURI(JSON.stringify(to_plot)) + '">';
+    }
+
+    document.addEventListener('DOMContentLoaded', (e) => {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var runfiles = JSON.parse(xhttp.responseText);
+                for(var i=0; i<runfiles["runfiles"].length; i++){
+                    document.getElementById("runfiles").innerHTML += '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfiles["runfiles"][i]["name"] + '\\\');"></td><td>' + runfiles["runfiles"][i]["name"] + '<span class="badge bg-success">fastest</span></td><td>' + runfiles["runfiles"][i]["input_sizes"] + '</td><td>' + runfiles["runfiles"][i]["num_runs"] + '</td></tr>';
+                }
+            }
+        };
+        xhttp.open("GET", "/runfiles", true);
+        xhttp.send();
+    });
 </script>
 
 
@@ -91,6 +106,7 @@ main = """
   <thead>
     <tr>
       <th scope="col">#</th>
+      <th scope="col"><input class="form-check-input" type="checkbox" value=""></th>
       <th scope="col">Name</th>
       <th scope="col">Input sizes</th>
       <th scope="col">Number of runs</th>
@@ -101,7 +117,7 @@ main = """
 </table>
 </div>
 
-<div class="col-6">Plot will be here</div>
+<div class="col-6" id="plotwindow">Plot will be here</div>
 </div>
 """
 
@@ -120,6 +136,8 @@ class GETHandler(BaseHTTPRequestHandler):
 
         if self.path == "/":
             result = header + main + footer
+            self.wfile.write(result.encode("utf-8"))
+
         if self.path == "/runfiles":
             result = json.dumps(
               {
@@ -127,7 +145,33 @@ class GETHandler(BaseHTTPRequestHandler):
               }
             )
 
-        self.wfile.write(result.encode("utf-8"))
+            self.wfile.write(result.encode("utf-8"))
+
+        if self.path[:6] == "/plot/":
+            ids_json = urllib.parse.unquote(self.path[6:])
+            ids = json.loads(ids_json)
+
+            pyplot.clf()
+            fig, ax = pyplot.subplots()
+            for i in ids:
+                runfile = runfiles[i]
+                x = runfile["input_sizes"]
+                y = []
+                for input_size in x:
+                    y.append(median(runfile["benchmarks"][str(input_size)]))
+            
+                pyplot.plot(x, y, marker='^', label=i)
+            
+            ax.legend()
+            ax.set_xlabel("n (input size)")
+            ax.set_ylabel("cycles")
+            pyplot.title("Cycle comparison")
+
+            tmp_path = tempfile.gettempdir() + "/asl_graph.png"
+            pyplot.savefig(tmp_path)
+            self.wfile.write(open(tmp_path, "rb").read())
+
+        
 
 
 class Webinterface(Thread):
