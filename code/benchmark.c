@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "utils.h"
 #include "runfile.h"
@@ -35,6 +36,7 @@ void start_benchmark(run_variables_t *run_variables){
 
 // Runs all the computations that should be measured and returns the number of cycles
 uint64_t measure_single_run(run_variables_t *run_variables, int input_size){
+    srand(time(NULL));
     usleep(10000);
     return rand() % 60000;
 }

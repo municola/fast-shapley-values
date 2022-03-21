@@ -100,7 +100,7 @@ main = """
         if(new_entry){
             new_badge = '<span class="badge bg-info">new</span>';
         }
-        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["name"] + new_badge + '<span class="badge bg-success">fastest</span></td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["num_runs"] + '</td></tr>';
+        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["name"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["name"] + new_badge + '<span class="badge bg-success">fastest</span></td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["num_runs"] + '</td></tr>';
     }
 
     document.addEventListener('DOMContentLoaded', (e) => {
@@ -128,7 +128,13 @@ main = """
                     new_top += get_table_entry(i, runfiles["updates"][i], true);
                 }
 
-                document.getElementById("runfiles").innerHTML = new_top + document.getElementById("runfiles").innerHTML;
+                if(new_top != ""){
+                    document.getElementById("runfiles").innerHTML = new_top + document.getElementById("runfiles").innerHTML;
+                }
+
+                for(var i=0; i<to_plot.length; i++){
+                    document.getElementById(to_plot[i]).checked = true;
+                }
             }
         };
         xhttp.open("GET", "/updates", true);
