@@ -5,28 +5,45 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from matplotlib import pyplot
 from statistics import median 
 import tempfile
-from threading import Thread
+from threading import Thread, Lock
 from time import sleep
 
 # Read all runfiles
+runfiles_lock = Lock()
 runfiles_paths = []
 runfiles = {}
 runfiles_stripped = []
+new_runfiles_stripped = []
 
-for f in os.listdir("./run/"):
-    if f.endswith(".json"):
-        runfiles_paths.append(f)
 
-        rf = json.loads(open("./run/" + f, "r").read())
+def read_runfiles():
+    runfiles_lock.acquire()
+    for f in os.listdir("./run/"):
+        if f.endswith(".json") and not f in runfiles:
+            try:
+                rf = json.loads(open("./run/" + f, "r").read())
+            except:
+                continue
+
+            # Only append, if parsing succeeds
+
+            runfiles_paths.append(f)                
+
+            # Todo: Determine median / best, etc. here!
+            stripped = {
+                "name" : f,
+                "input_sizes" : rf["input_sizes"],
+                "num_runs" : rf["num_runs"]
+            }
+
+
+            runfiles[f] = rf
+            runfiles_stripped.append(stripped)
+
+            print("new runfile:", f)
+            new_runfiles_stripped.append(stripped)
         
-        # Todo: Determine median / best, etc. here!
-
-        runfiles[f] = rf
-        runfiles_stripped.append({
-            "name" : f,
-            "input_sizes" : rf["input_sizes"],
-            "num_runs" : rf["num_runs"]
-        })
+    runfiles_lock.release()
 
 
 
@@ -80,19 +97,46 @@ main = """
         document.getElementById("plotwindow").innerHTML = '<img src="/plot/' + encodeURI(JSON.stringify(to_plot)) + '">';
     }
 
+    function get_table_entry(i, runfile, new_entry) {
+        var new_badge = '';
+        if(new_entry){
+            new_badge = '<span class="badge bg-info">new</span>';
+        }
+        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["name"] + new_badge + '<span class="badge bg-success">fastest</span></td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["num_runs"] + '</td></tr>';
+    }
+
     document.addEventListener('DOMContentLoaded', (e) => {
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
             if (this.readyState == 4 && this.status == 200) {
                 var runfiles = JSON.parse(xhttp.responseText);
                 for(var i=0; i<runfiles["runfiles"].length; i++){
-                    document.getElementById("runfiles").innerHTML += '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfiles["runfiles"][i]["name"] + '\\\');"></td><td>' + runfiles["runfiles"][i]["name"] + '<span class="badge bg-success">fastest</span></td><td>' + runfiles["runfiles"][i]["input_sizes"] + '</td><td>' + runfiles["runfiles"][i]["num_runs"] + '</td></tr>';
+                    document.getElementById("runfiles").innerHTML += get_table_entry(i, runfiles["runfiles"][i], false);
                 }
             }
         };
         xhttp.open("GET", "/runfiles", true);
         xhttp.send();
     });
+
+
+    setInterval(function() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var runfiles = JSON.parse(xhttp.responseText);
+                var new_top = "";
+                for(var i=0; i<runfiles["updates"].length; i++){
+                    new_top += get_table_entry(i, runfiles["updates"][i], true);
+                }
+
+                document.getElementById("runfiles").innerHTML = new_top + document.getElementById("runfiles").innerHTML;
+            }
+        };
+        xhttp.open("GET", "/updates", true);
+        xhttp.send();
+    }, 5000);
+
 </script>
 
 
@@ -129,14 +173,23 @@ footer = """
 
 class GETHandler(BaseHTTPRequestHandler):
     global runfiles
+    global runfiles_stripped
+    global new_runfiles_stripped
+    global runfiles_lock
 
     def do_GET(self):
+        global runfiles
+        global runfiles_stripped
+        global new_runfiles_stripped
+        global runfiles_lock
+
         self.send_response(200, "OK")
         self.end_headers()
 
         if self.path == "/":
             result = header + main + footer
             self.wfile.write(result.encode("utf-8"))
+
 
         if self.path == "/runfiles":
             result = json.dumps(
@@ -146,6 +199,21 @@ class GETHandler(BaseHTTPRequestHandler):
             )
 
             self.wfile.write(result.encode("utf-8"))
+
+
+        if self.path == "/updates":
+            runfiles_lock.acquire()
+            result = json.dumps(
+              {
+                "updates" : new_runfiles_stripped
+              }
+            )
+            new_runfiles_stripped = []
+            runfiles_lock.release()
+
+            self.wfile.write(result.encode("utf-8"))
+
+
 
         if self.path[:6] == "/plot/":
             ids_json = urllib.parse.unquote(self.path[6:])
@@ -193,8 +261,8 @@ while True:
     try:
         # Main logic goes here...
 
-
-        sleep(1)
+        read_runfiles()
+        sleep(5)
 
     except KeyboardInterrupt:
         print("Exiting...")
