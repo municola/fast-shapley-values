@@ -39,8 +39,6 @@ def read_runfiles():
 
             runfiles[f] = rf
             runfiles_stripped.append(stripped)
-
-            print("new runfile:", f)
             new_runfiles_stripped.append(stripped)
         
     runfiles_lock.release()
@@ -192,17 +190,23 @@ class GETHandler(BaseHTTPRequestHandler):
 
 
         if self.path == "/runfiles":
+            runfiles_lock.acquire()
+            runfiles_stripped.sort(key=(lambda elem: int(elem["name"][:-5])), reverse=True)
             result = json.dumps(
               {
                 "runfiles" : runfiles_stripped
               }
             )
+            new_runfiles_stripped = []
+            runfiles_lock.release()
 
             self.wfile.write(result.encode("utf-8"))
 
 
         if self.path == "/updates":
             runfiles_lock.acquire()
+            new_runfiles_stripped.sort(key=(lambda elem: int(elem["name"][:-5])), reverse=True)
+            new_runfiles_stripped.reverse()
             result = json.dumps(
               {
                 "updates" : new_runfiles_stripped
