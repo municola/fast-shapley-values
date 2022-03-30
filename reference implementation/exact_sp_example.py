@@ -4,23 +4,25 @@ import numpy as np
 from sklearn.utils import shuffle
 from exact_sp import get_true_KNN, compute_single_unweighted_knn_class_shapley
 
-# data = np.load('CIFAR10_resnet50-keras_features.npz')
-# x_trn = np.vstack((data['features_training'], data['features_testing']))
-# y_trn = np.hstack((data['labels_training'], data['labels_testing']))
+""" Uncomment to load data from web """
+# cifar = tf.keras.datasets.cifar10
+# (x_trn, y_trn), (x_tst, y_tst) = cifar.load_data()
 
-# x_trn, y_trn = shuffle(x_trn, y_trn, random_state=0)
+# np.save("x_trn", x_trn)
+# np.save("y_trn", y_trn)
 
-cifar = tf.keras.datasets.cifar10
-(x_trn, y_trn), (x_tst, y_tst) = cifar.load_data()
+""" Uncomment to load data from local files """
+x_trn = np.load("x_trn.npy")
+y_trn = np.load("y_trn.npy")
 
-# x_trn = np.reshape(x_trn, (-1, 2048))
+x_trn = np.reshape(x_trn, (-1, 2048))
 x_trn = np.reshape(x_trn, (-1, 32*32*3))
 x_tst, y_tst = x_trn[:100], y_trn[:100]
 x_val, y_val = x_trn[100:210], y_trn[100:210]
 x_trn, y_trn = x_trn[210:], y_trn[210:]
 
 print("X-train.shape:", x_trn.shape)
-
+print("Y-train.shape:", y_trn.shape)
 # we are using 1-nn classifier
 K = 1
 
