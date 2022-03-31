@@ -16,9 +16,4 @@
 [2] [Cifar10](https://www.cs.toronto.edu/~kriz/cifar.html)<br>
 [3] [Imagenet](https://image-net.org/challenges/LSVRC/2010/2010-downloads.php) (Labels are in the Development Kit)
 
-## File structure
-- data
-    - features
-        - cifar10
-        - dogfish
-    - images
+My fraction: $\frac{2}{3}$
