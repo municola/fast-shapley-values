@@ -15,3 +15,6 @@
 [1] [DogFish](https://worksheets.codalab.org/bundles/0x550cd344825049bdbb865b887381823c) <br>
 [2] [Cifar10](https://www.cs.toronto.edu/~kriz/cifar.html)<br>
 [3] [Imagenet](https://image-net.org/challenges/LSVRC/2010/2010-downloads.php) (Labels are in the Development Kit)
+
+## Example
+1. Run dataset/cifar10_generation.py

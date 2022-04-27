@@ -19,7 +19,8 @@ torch.manual_seed(1234)
 
 # Constants
 showImages = args.show_images
-batch_size = 4
+batch_size = 32
+print("Using batch_size: ", batch_size)
 
 # In order to match the resnet input size we use Resizing with bilinear interpolation
 # We normalize the images for the range [-1,1]
@@ -31,12 +32,12 @@ transform = transforms.Compose(
 trainset = torchvision.datasets.CIFAR10(root='./data/images/cifar10', train=True,
                                         download=True, transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                          shuffle=False, num_workers=2)
+                                          shuffle=False, num_workers=12)
 
 testset = torchvision.datasets.CIFAR10(root='./data/images/cifar10', train=False,
                                        download=True, transform=transform)
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                         shuffle=False, num_workers=2)
+                                         shuffle=False, num_workers=12)
 
 classes = ('plane', 'car', 'bird', 'cat',
            'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
@@ -59,6 +60,9 @@ if showImages:
     # Print labels    
     print(' '.join(f'{classes[labels[j]]:5s}' for j in range(batch_size)))
 
+# Put of GPU if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Using: ", device)
 
 # Create Model Resnet model without top layer
 # Since we want to extract the features of the second last layer
@@ -71,6 +75,7 @@ else:
 
 newmodel = torch.nn.Sequential(*(list(model.children())[:-1]))
 newmodel.eval()
+newmodel.to(device)
 
 # Create Dataframe
 features = pd.DataFrame()
@@ -82,7 +87,7 @@ with torch.no_grad():
     with tqdm(trainloader, unit="batch") as tepoch:
         for images, labels in tepoch:
             # calculate encoding by running images through the network
-            encoding = newmodel(images)
+            encoding = newmodel(images.to(device))
             encoding = encoding.squeeze(2)
             encoding = encoding.squeeze(2)
 
@@ -109,7 +114,7 @@ with torch.no_grad():
     with tqdm(testloader, unit="batch") as tepoch:
         for images, labels in tepoch:
             # calculate encoding by running images through the network
-            encoding = newmodel(images)
+            encoding = newmodel(images.to(device))
             encoding = encoding.squeeze(2)
             encoding = encoding.squeeze(2)
 
