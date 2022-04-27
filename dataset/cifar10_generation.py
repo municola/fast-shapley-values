@@ -4,7 +4,6 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt     
 import numpy as np
 import argparse
-import pandas as pd
 from torchvision import models
 from tqdm import tqdm
 
