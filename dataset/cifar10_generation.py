@@ -71,18 +71,16 @@ if args.model_version == 'resnet50':
 elif args.model_version == 'resnet18':
     model = models.resnet18(pretrained=True)
 else:
-    raise ValueError("Specify modelVersion as resnet18 or resnet50")
+    raise ValueError("Specify model Version as resnet18 or resnet50")
 
 newmodel = torch.nn.Sequential(*(list(model.children())[:-1]))
 newmodel.eval()
 newmodel.to(device)
 
-# Create Dataframe
-features = pd.DataFrame()
-lables_df = pd.DataFrame()
-
 # Create Features of Trainset
 print("Starting Trainset Feature extraction..")
+features = []
+lables = []
 with torch.no_grad():
     with tqdm(trainloader, unit="batch") as tepoch:
         for images, labels in tepoch:
@@ -91,25 +89,18 @@ with torch.no_grad():
             encoding = encoding.squeeze(2)
             encoding = encoding.squeeze(2)
 
-            for i in range (0,batch_size):
-                # Append features
-                rowdf = pd.DataFrame([encoding[i]])
-                features = pd.concat([features,rowdf], ignore_index=True)
+            features.extend(encoding.cpu().detach().numpy())
+            lables.extend(labels.cpu().detach().numpy())
 
-                # Append labels
-                rowdf = pd.DataFrame([labels[i]])
-                lables_df = pd.concat([lables_df, rowdf], ignore_index=True)
+# Saving numpy array
+np.save(r'data/features/cifar10/train_features.npy', features)
+np.save(r'data/features/cifar10/train_labels.npy', lables)
 
-features.to_csv(r'data/features/cifar10/train_features.csv',index=False, header=True)
-lables_df.to_csv(r'data/features/cifar10/train_labels.csv',index=False, header=True)
-
-
-# Create Dataframe
-features = pd.DataFrame()
-lables_df = pd.DataFrame()
 
 # Create Features of Testset
 print("Starting Testset Feature extraction..")
+features = []
+lables = []
 with torch.no_grad():
     with tqdm(testloader, unit="batch") as tepoch:
         for images, labels in tepoch:
@@ -118,14 +109,9 @@ with torch.no_grad():
             encoding = encoding.squeeze(2)
             encoding = encoding.squeeze(2)
 
-            for i in range (0,batch_size):
-                # Append features
-                rowdf = pd.DataFrame([encoding[i]])
-                features = pd.concat([features,rowdf], ignore_index=True)
+            features.extend(encoding.cpu().detach().numpy())
+            lables.extend(labels.cpu().detach().numpy())
 
-                # Append labels
-                rowdf = pd.DataFrame([labels[i]])
-                lables_df = pd.concat([lables_df, rowdf], ignore_index=True)
-
-features.to_csv(r'data/features/cifar10/test_features.csv', index=False, header=True)
-lables_df.to_csv(r'data/features/cifar10/test_labels.csv',index=False, header=True)
+# Saving numpy array
+np.save(r'data/features/cifar10/test_features.npy', features)
+np.save(r'data/features/cifar10/test_labels.npy', lables)
