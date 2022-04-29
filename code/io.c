@@ -22,11 +22,12 @@ void read_bin_file(unsigned char** buffer, char* filename) {
     fread(*buffer, filelen, 1, fileptr); // Read in the entire file
     fclose(fileptr); // Close the file 
 
-    // printf("Vals: ");
-    // for (int i = 0; i<33;i++) {
-    //     printf("%d, ", (*buffer)[i]);
-    // }
-    // printf("\n");
+}
+
+void read_bin_file_known_size(double* buffer, char* filename, size_t element_count) {
+    FILE* fileptr = fopen(filename, "rb");  // Open the file in binary mode
+    fread(buffer, sizeof(double), element_count, fileptr); // Read in the entire file
+    fclose(fileptr); // Close the file 
 }
 
 int compar (const void *a, const void *b)
@@ -45,19 +46,10 @@ int compar (const void *a, const void *b)
     - result is a 2D array of size_x_tst * size_x_trn
     - result[i][j] is the proximity rank of the jth train point regarding the ith test point.
    */
-void get_true_KNN(int* result, const int* x_trn, const int* x_tst, size_t size_x_trn, size_t size_x_tst, size_t feature_len) {
+void get_true_KNN(int* result, const double* x_trn, const double* x_tst, size_t size_x_trn, size_t size_x_tst, size_t feature_len) {
     double curr_dist;
-
-    // // Zero out the result array
-    // for (int i=0; i<size_x_trn*size_x_tst; i++) {
-    //     result[i] = 0;
-    // }
-
     // Loop through each test point
     for (int i_tst=0; i_tst<size_x_tst; i_tst++) {
-        // printf("zero\n");
-        // memset(dist_gt, 0, size_x_trn);
-        // printf("one\n");
         // Loop through each train point
         for (int i_trn=0; i_trn<size_x_trn; i_trn++){
             // calculate the distance between the two points
@@ -69,15 +61,13 @@ void get_true_KNN(int* result, const int* x_trn, const int* x_tst, size_t size_x
 
             dist_gt[i_trn] = curr_dist;
         }
-        // printf("two\n");
+        
         // get the indexes that would sort the array
         int* sorted_indexes = (int*)malloc(size_x_trn * sizeof(int));
         for (int i=0; i<size_x_trn; i++) {
             sorted_indexes[i] = i;
         }
         qsort(sorted_indexes, size_x_trn, sizeof(int), compar);
-
-        // printf("three\n");
 
         // copy to result array
         // printf("Copy result to res[%d+%d], \n", i_tst, size_x_tst);
@@ -87,48 +77,61 @@ void get_true_KNN(int* result, const int* x_trn, const int* x_tst, size_t size_x
 }
 
 int main (void) {
-    unsigned char *buffer;
+    size_t feature_len = 2048;
 
-    // Data in file format according to https://www.cs.toronto.edu/~kriz/cifar.html
-    read_bin_file(&buffer, "../cifar-10-batches-bin/data_batch_1.bin");
+    //Load the training data
+    double* base_x_trn = (double*)malloc(sizeof(double)*50000*feature_len);
+    double* base_y_trn = (double*)malloc(sizeof(double)*10000);
 
-    // Now split the data into features and labels array
-    int* base_x_trn = (int*)malloc(sizeof(int)*10000*3072);
-    int* base_y_trn = (int*)malloc(sizeof(int)*10000);
+    assert(base_x_trn && base_y_trn);
 
-    if (base_x_trn == NULL || base_y_trn == NULL) {
-        printf("Error allocating memory\n");
-        return 1;
-    }
+     //Read binary data into buffer
+    read_bin_file_known_size(base_x_trn, "../data/features/cifar10/train_features.bin", 50000);
+    read_bin_file_known_size(base_y_trn, "../data/features/cifar10/train_features.bin", 10000);
 
-    for (int i = 0; i<10000;i++) {
-        base_y_trn[i] = (int)buffer[i*3073];
-        for (int j = 0; j<3073;j++) {
-            base_x_trn[i*3072+j] = (int)buffer[i*3073+j+1];
-        }
-    }
+    // for (int i = 0; i<10000;i++) {
+    //     base_y_trn[i] = (int)buffer[i*3073];
+    //     for (int j = 0; j<3073;j++) {
+    //         base_x_trn[i*3072+j] = (int)buffer[i*3073+j+1];
+    //     }
+    // }
+
+    // Das gat nöd :(
+    double* x_trn = &(base_x_trn[49000*feature_len]);
+    size_t size_x_trn = 1000;
+
+    double* y_trn = &base_y_trn[49000*feature_len];
+    size_t size_y_trn = 1000;
+
+    double* x_tst = base_x_trn;
+    size_t size_x_tst = 50;
+
+    double* y_tst = base_y_trn;
+    size_t size_y_tst = 50;
+
+
+    printf("ba element %f, ", base_x_trn[49000*feature_len]);
+    printf("tn element %f, ", x_trn[0]);
 
     //print base_x_trn
-    printf("base_x_trn:\n");
-    for (int i = 0; i<10;i++) {
-        for (int j = 0; j<5;j++) {
-            printf("%d, ", base_x_trn[i*3072+j]);
-        }
-        printf("\n");
-    }
-
-    int size_x_trn = 5;
-    int size_x_tst = 10;
+    // printf("x_trn:\n");
+    // for (int i = 0; i<1000;i++) {
+    //     for (int j = 0; j<5;j++) {
+    //         printf("%f, ", x_trn[i*feature_len+j]);
+    //     }
+    //     printf("\n");
+    // }
 
     int* x_tst_knn_gt = (int*)calloc(size_x_tst * size_x_trn, sizeof(int));
     dist_gt = (double*)calloc(size_x_trn, sizeof(double));
 
-    get_true_KNN(x_tst_knn_gt, base_x_trn, base_x_trn, size_x_trn, size_x_tst, 3072);
+    get_true_KNN(x_tst_knn_gt, base_x_trn, base_x_trn, size_x_trn, size_x_tst, feature_len);
 
-    //print x_tst_knn_gt array
+    // print x_tst_knn_gt array
+    printf("\n");
     printf("X_tst_knn_gt_array:\n");
-    for (int i = 0; i<size_x_tst;i++) {
-        for (int j = 0; j<size_x_trn;j++) {
+    for (int i = 0; i<3;i++) {
+        for (int j = 0; j<3;j++) {
             printf("%d, ", x_tst_knn_gt[i*size_x_trn+j]);
         }
         printf("\n");
