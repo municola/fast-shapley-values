@@ -5,6 +5,7 @@
 *.bin
 *.npy
 *.gz
+*.zip
 cifar-10-batches-bin
 cifar-10-batches-py/
 .JPEG

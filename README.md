@@ -12,9 +12,13 @@
 |Imagenet-S | Imagenet[3]   |  Resnet18   |   1024      |   1000      |  1M         |  50k        |  ✅       |
 |Imagenet-L | Imagenet[3]   |  Resnet50   |   2048      |   1000      |  1M         |  50k        |  ✅       |
 
+Original dataset
 [1] [DogFish](https://worksheets.codalab.org/bundles/0x550cd344825049bdbb865b887381823c) <br>
 [2] [Cifar10](https://www.cs.toronto.edu/~kriz/cifar.html)<br>
 [3] [Imagenet](https://image-net.org/challenges/LSVRC/2010/2010-downloads.php) (Labels are in the Development Kit)
+
+Already prepared
+[2] [Cifar10](https://polybox.ethz.ch/index.php/s/kcoz8noxTJKrc5N)
 
 ## Example
 1. Run dataset/cifar10_generation.py
