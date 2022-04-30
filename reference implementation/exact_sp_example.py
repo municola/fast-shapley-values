@@ -51,6 +51,8 @@ from exact_sp import get_true_KNN, compute_single_unweighted_knn_class_shapley
 x_trn = np.load("../data/features/cifar10/train_features.npy")
 y_trn = np.load("../data/features/cifar10/train_labels.npy")
 
+print(y_trn[:10])
+
 # x_trn, y_trn = shuffle(x_trn, y_trn, random_state=0)
 
 # x_trn = x_trn[:200]
@@ -71,6 +73,16 @@ print(x_trn)
 print()
 print("x_tst:")
 print(x_tst)
+
+print()
+print("y_trn:")
+print(y_trn)
+
+
+
+print()
+print("y_tst:")
+print(y_tst)
 
 start = time.time()
 x_tst_knn_gt = get_true_KNN(x_trn, x_tst)
