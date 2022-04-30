@@ -5,11 +5,16 @@ from tqdm import tqdm
 def get_true_KNN(x_trn, x_tst):
     N = x_trn.shape[0]
     N_tst = x_tst.shape[0]
+    print(N, N_tst)
     x_tst_knn_gt = np.zeros((N_tst, N))
+
     for i_tst in tqdm(range(N_tst)):
         dist_gt = np.zeros(N)
         for i_trn in range(N):
             dist_gt[i_trn] = np.linalg.norm(x_trn[i_trn, :] - x_tst[i_tst, :], 2)
+            # print("x_trn.shape: ", x_trn[i_trn,:].shape, "x_tst.shape:", x_tst.shape)
+        print("Dist_gt:")
+        print(dist_gt)
         x_tst_knn_gt[i_tst, :] = np.argsort(dist_gt)
     return x_tst_knn_gt.astype(int)
 
