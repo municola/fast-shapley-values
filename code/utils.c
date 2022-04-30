@@ -5,6 +5,7 @@
 
 #include "utils.h"
 #include "runfile.h"
+#include "correctness.h"
 
 char *exec_and_get_output(char *cmd){
     char cmd_redirect[512];
@@ -103,6 +104,7 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
     add_run_info(run_variables->runfile, "cpu", tmpbuf);
     add_run_info_raw(run_variables->runfile, "turbo_boost_disabled", intel_turbo_boost_disabled() ? "true" : "false");
     add_run_info(run_variables->runfile, "arguments", args);
+    add_run_info_raw(run_variables->runfile, "shapley_correct", exact_shapley_correct() ? "true" : "false");
     add_run_info_int(run_variables->runfile, "num_runs", run_variables->number_of_runs);
     add_run_info_int(run_variables->runfile, "num_input_sizes", run_variables->number_of_input_sizes);
 
@@ -147,6 +149,10 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
            "Runfile:                 %s\n"\
            "Arguments:               %s\n\n"\
 
+           "\033[1mCorrectness information:\033[0m\n"\
+           "KNN correct:             %s\n"\
+           "Shapley correct:         %s\n\n"\
+
            "\033[1mBenchmark information:\033[0m\n"\
            "Number of input sizes:   %d\n"\
            "Input sizes:             %s\n"\
@@ -161,6 +167,8 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
            (intel_turbo_boost_disabled() ? color("Disabled", GREEN) : color("Enabled", RED)),
            run_variables->runfile_path,
            args,
+           (exact_knn_correct() ? color("Correct", GREEN) : color("Incorrect", RED)),
+           (exact_shapley_correct() ? color("Correct", GREEN) : color("Incorrect", RED)),
            run_variables->number_of_input_sizes,
            tmpbuf,
            run_variables->number_of_runs

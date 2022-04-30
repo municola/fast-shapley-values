@@ -1,8 +1,8 @@
 CC = clang
-CFLAGS = -O3 -fno-tree-vectorize
+CFLAGS = -O3 -fno-tree-vectorize -lm
 
-CFILES = shapley_values.c utils.c runfile.c benchmark.c
-CHEADERS = shapley_values.h utils.h runfile.h benchmark.h
+CFILES = shapley_values.c base_exact_shapley.c io.c utils.c runfile.c benchmark.c correctness.c
+CHEADERS = shapley_values.h base_exact_shapley.h io.h utils.h runfile.h benchmark.h correctness.h
 FILES = $(CFILES) $(CHEADERS)
 
 GITREV = $(shell git log -1 --format=%h)
@@ -11,6 +11,9 @@ GITSTATUS = $(shell git diff --stat | head -n1)
 
 
 all: project
+
+run: project
+	./shapley_values
 
 project: $(FILES)
 	$(CC) $(CFLAGS) -DCC='"$(CC)"' -DCFLAGS='"$(CFLAGS)"' -DGITREV='"$(GITREV)"' -DGITBRANCH='"$(GITBRANCH)"' -DGITSTATUS='"$(GITSTATUS)"' -o shapley_values $(CFILES)
