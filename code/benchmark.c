@@ -44,7 +44,7 @@ uint64_t measure_single_run(run_variables_t *run_variables, int input_size){
     // Rely on tsc_x86.h to count the cycles
     uint64_t start, end;
     start = start_tsc();
-    run_shapley();
+    run_shapley(input_size);
     end = stop_tsc(start);
     return end;
 }

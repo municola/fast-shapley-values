@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-void run_shapley();
+void run_shapley(size_t feature_len);
 
 void get_true_KNN(
                 int* result,

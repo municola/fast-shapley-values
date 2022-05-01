@@ -1,13 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
+
+#include "tsc_x86.h"
 #include "io.h"
 
-//#define DEBUG 0
-#define debug_print(fmt, ...) \
-            do { if (DEBUG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+// Use "make debug" to enable debug prints and debug symbols, etc.
+#ifdef DEBUG
+    #define debug_print(fmt, ...) \
+                do { fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+#else
+    #define debug_print(fmt, ...) 
+#endif
 
 double* dist_gt;
 
@@ -137,9 +144,8 @@ void compute_single_unweighted_knn_class_shapley(double* sp_gt,
 //         size_t feature_len ) {
 // }
 
-void run_shapley() {
-    size_t feature_len = 2048;
 
+uint64_t run_shapley(size_t feature_len) {
     //init the training data
     double* base_x_trn = (double*)malloc(sizeof(double)*50000*feature_len);
     double* base_y_trn = (double*)malloc(sizeof(double)*50000);
@@ -171,6 +177,7 @@ void run_shapley() {
     double y_tst[10] = {6.0, 9.0, 9.0, 4.0, 1.0, 1.0, 2.0, 7.0, 8.0, 3.0};
     size_t size_y_tst = 5;
 
+    #ifdef DEBUG
     //Sanity check, to make sure that C and Python are doing the same thing
     debug_print("%s", "x_trn:\n");
     for (int i = 0; i<3;i++) {
@@ -196,12 +203,15 @@ void run_shapley() {
     }
     debug_print("%s", "\n");
     debug_print("%s", "\n");
+    #endif
+
+    uint64_t start_timer, end_timer;
 
     // Allocate resulting arrays
     int* x_tst_knn_gt = (int*)calloc(size_x_tst * size_x_trn, sizeof(int));
-
     get_true_KNN(x_tst_knn_gt, x_trn, x_tst, size_x_trn, size_x_tst, feature_len);
 
+    #ifdef DEBUG
     // print x_tst_knn_gt array
     debug_print("%s", "\n");
     debug_print("%s", "X_tst_knn_gt_array:\n");
@@ -211,10 +221,15 @@ void run_shapley() {
         }
         debug_print("%s", "\n");
     }
+    #endif
 
     double* sp_gt = (double*)calloc(size_x_tst * size_x_trn, sizeof(double));
-    compute_single_unweighted_knn_class_shapley(sp_gt, x_trn, y_trn, x_tst_knn_gt, y_tst, size_x_trn, size_x_tst, size_y_tst, 1.0);
 
+    start_timer = start_tsc();    
+    compute_single_unweighted_knn_class_shapley(sp_gt, x_trn, y_trn, x_tst_knn_gt, y_tst, size_x_trn, size_x_tst, size_y_tst, 1.0);
+    end_timer = stop_tsc(start_timer);
+
+    #ifdef DEBUG
     // print x_tst_knn_gt array
     debug_print("%s", "\n");
     debug_print("%s", "Shapley Values:\n");
@@ -224,9 +239,12 @@ void run_shapley() {
         }
         debug_print("%s", "\n");
     }
+    #endif
 
     free(base_x_trn);
     free(base_y_trn);
     free(x_tst_knn_gt);
     free(sp_gt);
+
+    return end_timer;
 }

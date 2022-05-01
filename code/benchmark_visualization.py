@@ -86,6 +86,7 @@ header = """
 main = """
 <script>
     var to_plot = [];
+    var plot_mode = 'performance';
 
     function toggle_plot(name){
         if(to_plot.includes(name)){
@@ -94,7 +95,7 @@ main = """
             to_plot.push(name);
         }
 
-        document.getElementById("plotwindow").innerHTML = '<img src="/plot/' + encodeURI(JSON.stringify(to_plot)) + '">';
+        document.getElementById("plotwindow").innerHTML = '<img src="/' + plot_mode + '_plot/' + encodeURI(JSON.stringify(to_plot)) + '">';
     }
 
     function get_table_entry(i, runfile, new_entry) {
@@ -102,7 +103,17 @@ main = """
         if(new_entry){
             new_badge = '<span class="badge bg-info">new</span>';
         }
-        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["name"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["name"] + new_badge + '<span class="badge bg-success">fastest</span></td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["num_runs"] + '</td></tr>';
+        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["name"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["name"] + new_badge + '</td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["num_runs"] + '</td></tr>';
+    }
+
+    function do_runtime_plots() {
+        plot_mode = 'runtime';
+        document.getElementById("plotwindow").innerHTML = '<img src="/' + plot_mode + '_plot/' + encodeURI(JSON.stringify(to_plot)) + '">';
+    }
+    
+    function do_performance_plots() {
+        plot_mode = 'performance';
+        document.getElementById("plotwindow").innerHTML = '<img src="/' + plot_mode + '_plot/' + encodeURI(JSON.stringify(to_plot)) + '">';
     }
 
     document.addEventListener('DOMContentLoaded', (e) => {
@@ -147,9 +158,10 @@ main = """
 
 
 <br><br>
+<h5>Select plot mode</h5>
+<span class="btn btn-secondary" onclick="javascript:do_runtime_plots()">Runtime plots</span>
+<span class="btn btn-secondary" onclick="javascript:do_performance_plots()">Performance plots</span><br><br>
 <h5>Latest benchmarks</h5>
-<br>
-
 <div class="row">
 <div class="col-6">
 <table class="table table-striped">
@@ -167,7 +179,7 @@ main = """
 </table>
 </div>
 
-<div class="col-6" id="plotwindow">Plot will be here</div>
+<div class="col-6" id="plotwindow"></div>
 </div>
 """
 
@@ -227,8 +239,8 @@ class GETHandler(BaseHTTPRequestHandler):
 
 
 
-        if self.path[:6] == "/plot/":
-            ids_json = urllib.parse.unquote(self.path[6:])
+        if self.path[:len("runtime_plot")+2] == "/runtime_plot/":
+            ids_json = urllib.parse.unquote(self.path[len("runtime_plot")+2:])
             ids = json.loads(ids_json)
 
             pyplot.clf()
@@ -245,12 +257,38 @@ class GETHandler(BaseHTTPRequestHandler):
             ax.legend()
             ax.set_xlabel("n (input size)")
             ax.set_ylabel("cycles")
-            pyplot.title("Cycle comparison")
+            pyplot.title("Runtime")
 
             tmp_path = tempfile.gettempdir() + "/asl_graph.png"
             pyplot.savefig(tmp_path)
             self.wfile.write(open(tmp_path, "rb").read())
 
+
+        if self.path[:len("performance_plot")+2] == "/performance_plot/":
+            ids_json = urllib.parse.unquote(self.path[len("performance_plot")+2:])
+            ids = json.loads(ids_json)
+
+            pyplot.clf()
+            fig, ax = pyplot.subplots()
+            for i in ids:
+                runfile = runfiles[i]
+                x = runfile["input_sizes"]
+                y = []
+                for input_size in x:
+                    flops = input_size*20
+                    cycles = median(runfile["benchmarks"][str(input_size)])
+                    y.append(flops/cycles)
+            
+                pyplot.plot(x, y, marker='^', label=i)
+            
+            ax.legend()
+            ax.set_xlabel("n (input size)")
+            ax.set_ylabel("flops/cycle")
+            pyplot.title("Performance")
+
+            tmp_path = tempfile.gettempdir() + "/asl_graph.png"
+            pyplot.savefig(tmp_path)
+            self.wfile.write(open(tmp_path, "rb").read())
         
 
 
