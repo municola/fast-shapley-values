@@ -3,10 +3,14 @@
 #include <unistd.h>
 #include <time.h>
 
+#include "tsc_x86.h"
 #include "utils.h"
 #include "runfile.h"
 #include "benchmark.h"
 #include "base_exact_shapley.h"
+
+// Include the source code to be benchmarked
+//#include "io.c"
 
 void start_benchmark(run_variables_t *run_variables){
     uint64_t *measured_cycles = calloc(run_variables->number_of_input_sizes * run_variables->number_of_runs, sizeof(uint64_t));
@@ -37,8 +41,10 @@ void start_benchmark(run_variables_t *run_variables){
 
 // Runs all the computations that should be measured and returns the number of cycles
 uint64_t measure_single_run(run_variables_t *run_variables, int input_size){
-    srand(time(NULL));
+    // Rely on tsc_x86.h to count the cycles
+    uint64_t start, end;
+    start = start_tsc();
     run_shapley();
-
-    return rand() % 60000;
+    end = stop_tsc(start);
+    return end;
 }
