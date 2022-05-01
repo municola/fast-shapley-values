@@ -35,8 +35,7 @@ int main(int argc, char *argv[]){
 
     // If no input sizes were specified, add some default powers of 2!
     if(run_variables.number_of_input_sizes == 0){
-        for(int i=7; i<14; i++){
-            printf("Added %d  (new %d)\n", 1<<i, run_variables.number_of_input_sizes);
+        for(int i=7; i<12; i++){
             run_variables.input_sizes[run_variables.number_of_input_sizes++] = 1<<i;
         }
     }

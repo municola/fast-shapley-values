@@ -1,4 +1,4 @@
-CC = clang
+CC = gcc
 CFLAGS = -lm -O3 -fno-tree-vectorize
 
 CFILES = shapley_values.c base_exact_shapley.c io.c utils.c runfile.c benchmark.c correctness.c
