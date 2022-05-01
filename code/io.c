@@ -22,6 +22,11 @@ void read_bin_file(unsigned char** buffer, char* filename) {
 
 void read_bin_file_known_size(double* buffer, char* filename, size_t element_count) {
     FILE* fileptr = fopen(filename, "rb");  // Open the file in binary mode
+    if(fileptr == NULL){
+        printf("Could not open file %s\n", filename);
+        exit(1);
+    }
+    
     fread(buffer, sizeof(double), element_count, fileptr); // Read in the entire file
     fclose(fileptr); // Close the file 
 }
