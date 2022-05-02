@@ -145,16 +145,22 @@ void compute_single_unweighted_knn_class_shapley(double* sp_gt,
 // }
 
 
-uint64_t run_shapley(size_t feature_len) {
-    //init the training data
-    double* base_x_trn = (double*)malloc(sizeof(double)*50000*feature_len);
-    double* base_y_trn = (double*)malloc(sizeof(double)*50000);
+uint64_t run_shapley(int input_size) {
+    int feature_len = 1024;
+    int num_test_samples = 5;
+    
+    double* base_x_train = (double*)malloc(sizeof(double)*input_size*feature_len);
+    double* base_y_train = (double*)malloc(sizeof(double)*input_size);
+    double* base_x_test = (double*)malloc(sizeof(double)*input_size*feature_len);
+    double* base_y_test = (double*)malloc(sizeof(double)*input_size);
 
-    assert(base_x_trn && base_y_trn);
+    assert(base_x_train && base_y_train);
 
     //Read binary training data into the arrays
-    read_bin_file_known_size(base_x_trn, "../data/features/cifar10/train_features.bin", 50000*feature_len);
-    read_bin_file_known_size(base_y_trn, "../data/features/cifar10/train_lables.bin", 50000);
+    read_bin_file_known_size(base_x_train, "../data/features/cifar10/train_features.bin", input_size*feature_len);
+    read_bin_file_known_size(base_y_train, "../data/features/cifar10/train_lables.bin", input_size);
+    read_bin_file_known_size(base_x_test, "../data/features/cifar10/train_features.bin", num_test_samples*feature_len);
+    read_bin_file_known_size(base_y_test, "../data/features/cifar10/train_lables.bin", num_test_samples);
 
     // debug_print("base_y:\n");
     // for (int i = 0; i<10;i++) {
@@ -163,43 +169,39 @@ uint64_t run_shapley(size_t feature_len) {
     // debug_print("\n");
 
     // Define start and lengths of the train and test data, as in the python implementation
-    double* x_trn = &(base_x_trn[49990*feature_len]);
-    size_t size_x_trn = 10;
+    double* x_train = base_x_train;
+    size_t size_x_train = input_size;
+    double* y_train = base_y_train;
+    size_t size_y_train = input_size;
 
-    // double* y_trn = &base_y_trn[49990];
-    double y_trn[10] = {4.0, 2.0, 0.0, 1.0, 0.0, 2.0, 6.0, 9.0, 1.0, 1.0};
-    size_t size_y_trn = 10;
-
-    double* x_tst = base_x_trn;
-    size_t size_x_tst = 5;
-
-    // double* y_tst = base_y_trn;
-    double y_tst[10] = {6.0, 9.0, 9.0, 4.0, 1.0, 1.0, 2.0, 7.0, 8.0, 3.0};
-    size_t size_y_tst = 5;
+    double* x_test = base_x_test;
+    size_t size_x_test = num_test_samples;
+    double* y_test = base_y_test;
+    size_t size_y_test = num_test_samples;
 
     #ifdef DEBUG
     //Sanity check, to make sure that C and Python are doing the same thing
-    debug_print("%s", "x_trn:\n");
+    debug_print("%s", "x_train:\n");
     for (int i = 0; i<3;i++) {
         for (int j = 0; j<3;j++) {
-            debug_print("%f, ", x_trn[i*feature_len+j]);
+            debug_print("%f, ", x_train[i*feature_len+j]);
         }
         debug_print("%s", "\n");
     }
 
    debug_print("%s", "\n");
-   debug_print("%s", "x_tst:\n");
+   debug_print("%s", "x_test:\n");
     for (int i = 0; i<3;i++) {
         for (int j = 0; j<3;j++) {
-            debug_print("%f, ", x_tst[i*feature_len+j]);
+            debug_print("%f, ", x_test[i*feature_len+j]);
         }
         debug_print("%s", "\n");
     }
 
     debug_print("%s", "\n");
-    debug_print("%s", "y_tst:\n");
-    for (int i = 0; i<size_y_tst;i++) {
-        debug_print("%f, ", y_tst[i]);
+    debug_print("%s", "y_test:\n");
+    for (int i = 0; i<size_y_test;i++) {
+        debug_print("%f, ", y_test[i]);
     }
     debug_print("%s", "\n");
     debug_print("%s", "\n");
@@ -208,25 +210,25 @@ uint64_t run_shapley(size_t feature_len) {
     uint64_t start_timer, end_timer;
 
     // Allocate resulting arrays
-    int* x_tst_knn_gt = (int*)calloc(size_x_tst * size_x_trn, sizeof(int));
-    get_true_KNN(x_tst_knn_gt, x_trn, x_tst, size_x_trn, size_x_tst, feature_len);
+    int* x_test_knn_gt = (int*)calloc(size_x_test * size_x_train, sizeof(int));
+    get_true_KNN(x_test_knn_gt, x_train, x_test, size_x_train, size_x_test, feature_len);
 
     #ifdef DEBUG
     // print x_tst_knn_gt array
     debug_print("%s", "\n");
-    debug_print("%s", "X_tst_knn_gt_array:\n");
+    debug_print("%s", "X_test_knn_gt_array:\n");
     for (int i = 0; i<5;i++) {
         for (int j = 0; j<10;j++) {
-            debug_print("%d, ", x_tst_knn_gt[i*size_x_trn+j]);
+            debug_print("%d, ", x_test_knn_gt[i*size_x_train+j]);
         }
         debug_print("%s", "\n");
     }
     #endif
 
-    double* sp_gt = (double*)calloc(size_x_tst * size_x_trn, sizeof(double));
+    double* sp_gt = (double*)calloc(size_x_test * size_x_train, sizeof(double));
 
     start_timer = start_tsc();    
-    compute_single_unweighted_knn_class_shapley(sp_gt, x_trn, y_trn, x_tst_knn_gt, y_tst, size_x_trn, size_x_tst, size_y_tst, 1.0);
+    compute_single_unweighted_knn_class_shapley(sp_gt, x_train, y_train, x_test_knn_gt, y_test, size_x_train, size_x_test, size_y_test, 1.0);
     end_timer = stop_tsc(start_timer);
 
     #ifdef DEBUG
@@ -235,15 +237,17 @@ uint64_t run_shapley(size_t feature_len) {
     debug_print("%s", "Shapley Values:\n");
     for (int i = 0; i<5;i++) {
         for (int j = 0; j<10;j++) {
-            debug_print("%f, ", sp_gt[i*size_x_trn+j]);
+            debug_print("%f, ", sp_gt[i*size_x_train+j]);
         }
         debug_print("%s", "\n");
     }
     #endif
 
-    free(base_x_trn);
-    free(base_y_trn);
-    free(x_tst_knn_gt);
+    free(base_x_train);
+    free(base_y_train);
+    free(base_x_test);
+    free(base_y_test);
+    free(x_test_knn_gt);
     free(sp_gt);
 
     return end_timer;
