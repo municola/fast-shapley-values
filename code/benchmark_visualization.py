@@ -275,7 +275,9 @@ class GETHandler(BaseHTTPRequestHandler):
                 x = runfile["input_sizes"]
                 y = []
                 for input_size in x:
-                    flops = input_size*20
+                    x_trg = 10
+                    x_tst = 5
+                    flops = x_tst * (2 + (x_trg - 2) * 7)
                     cycles = median(runfile["benchmarks"][str(input_size)])
                     y.append(flops/cycles)
             

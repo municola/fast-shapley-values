@@ -12,7 +12,7 @@
 // Public vars
 run_variables_t run_variables = {
     .quiet = false,
-    .number_of_runs = 3,
+    .number_of_runs = 20,
     .number_of_input_sizes = 0,
     .input_sizes = NULL,
     .runfile_path = "",
