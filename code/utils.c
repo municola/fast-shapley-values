@@ -162,7 +162,7 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
            "Debug:                   \033[92mFalse\033[0m\n\n"
         #endif
 
-           "\033[1mRun time information:\033[0m\n"\
+           "\033[1mRuntime information:\033[0m\n"\
            "CPU:                    %s"\
            "Intel Turbo Boost:       %s\n"\
            "Runfile:                 %s\n"\
