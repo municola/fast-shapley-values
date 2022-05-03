@@ -1,5 +1,4 @@
 import time
-import tensorflow as tf
 import numpy as np
 from sklearn.utils import shuffle
 from exact_sp import get_true_KNN, compute_single_unweighted_knn_class_shapley
@@ -79,11 +78,11 @@ print(x_tst)
 
 print()
 print("y_trn:")
-print(y_trn[:500])
+print(y_trn[:10])
 
 print()
 print("y_tst:")
-print(y_tst)
+print(y_tst[:10])
 
 start = time.time()
 x_tst_knn_gt = get_true_KNN(x_trn, x_tst)

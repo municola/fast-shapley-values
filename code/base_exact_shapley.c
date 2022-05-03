@@ -158,9 +158,9 @@ uint64_t run_shapley(int input_size) {
 
     //Read binary training data into the arrays
     read_bin_file_known_size(base_x_train, "../data/features/cifar10/train_features.bin", input_size*feature_len);
-    read_bin_file_known_size(base_y_train, "../data/features/cifar10/train_lables.bin", input_size);
+    read_bin_file_known_size(base_y_train, "../data/features/cifar10/train_labels.bin", input_size*1);
     read_bin_file_known_size(base_x_test, "../data/features/cifar10/test_features.bin", num_test_samples*feature_len);
-    read_bin_file_known_size(base_y_test, "../data/features/cifar10/test_lables.bin", num_test_samples);
+    read_bin_file_known_size(base_y_test, "../data/features/cifar10/test_labels.bin", num_test_samples);
 
     // debug_print("base_y:\n");
     // for (int i = 0; i<10;i++) {
