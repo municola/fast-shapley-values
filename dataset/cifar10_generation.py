@@ -79,38 +79,62 @@ newmodel.to(device)
 # Create Features of Trainset
 print("Starting Trainset Feature extraction..")
 features = []
-lables = []
+labels = []
 with torch.no_grad():
     with tqdm(trainloader, unit="batch") as tepoch:
-        for images, labels in tepoch:
+        for images, y in tepoch:
             # calculate encoding by running images through the network
             encoding = newmodel(images.to(device))
             encoding = encoding.squeeze(2)
             encoding = encoding.squeeze(2)
+            y = y.unsqueeze(1)
 
             features.extend(encoding.cpu().detach().numpy())
-            lables.extend(labels.cpu().detach().numpy())
+            labels.extend(y.cpu().detach().numpy())
 
 # Saving numpy array
-np.save(r'data/features/cifar10/train_features.npy', features)
-np.save(r'data/features/cifar10/train_labels.npy', lables)
+numpy_features = np.array(features)
+numpy_features = numpy_features.astype(np.float64)
+numpy_labels = np.array(labels)
+numpy_labels = numpy_labels.astype(np.float64)
+numpy_labels = numpy_labels
+
+np.save(r'../data/features/cifar10/train_features.npy', numpy_features)
+np.save(r'../data/features/cifar10/train_labels.npy', numpy_labels)
+numpy_features.tofile(r'../data/features/cifar10/train_features.bin')
+numpy_labels.tofile(r'../data/features/cifar10/train_labels.bin')
+print('train_numpy_features: ', numpy_features[0,:10])
+print('train_numpy_labels: ', numpy_labels[:10])
+print('train_labels: ', labels[:10])
 
 
 # Create Features of Testset
 print("Starting Testset Feature extraction..")
 features = []
-lables = []
+labels = []
 with torch.no_grad():
     with tqdm(testloader, unit="batch") as tepoch:
-        for images, labels in tepoch:
+        for images, y in tepoch:
             # calculate encoding by running images through the network
             encoding = newmodel(images.to(device))
             encoding = encoding.squeeze(2)
             encoding = encoding.squeeze(2)
+            y = y.unsqueeze(1)
 
             features.extend(encoding.cpu().detach().numpy())
-            lables.extend(labels.cpu().detach().numpy())
+            labels.extend(y.cpu().detach().numpy())
 
 # Saving numpy array
-np.save(r'data/features/cifar10/test_features.npy', features)
-np.save(r'data/features/cifar10/test_labels.npy', lables)
+numpy_features = np.array(features)
+numpy_features = numpy_features.astype(np.float64)
+numpy_labels = np.array(labels)
+numpy_labels = numpy_labels.astype(np.float64)
+numpy_labels = numpy_labels
+
+np.save(r'../data/features/cifar10/test_features.npy', numpy_features)
+np.save(r'../data/features/cifar10/test_labels.npy', numpy_labels)
+numpy_features.tofile(r'../data/features/cifar10/test_features.bin')
+numpy_labels.tofile(r'../data/features/cifar10/test_labels.bin')
+print('test_numpy_features: ', numpy_features[0,:10])
+print('test_numpy_labels: ', numpy_labels[:10])
+print('test_labels: ', labels[:10])

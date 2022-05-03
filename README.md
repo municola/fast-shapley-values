@@ -18,7 +18,7 @@ Original dataset
 [3] [Imagenet](https://image-net.org/challenges/LSVRC/2010/2010-downloads.php) (Labels are in the Development Kit)
 
 Already prepared
-[2] [Cifar10](https://polybox.ethz.ch/index.php/s/kcoz8noxTJKrc5N)
+[2] [Cifar10](https://polybox.ethz.ch/index.php/s/flCES6dSsSL7LKD)
 
 ## Example
 1. Run dataset/cifar10_generation.py
