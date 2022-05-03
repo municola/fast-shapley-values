@@ -9,6 +9,12 @@
 
 void init_runfile(runfile_t *runfile, char *path, int number_of_input_sizes){
     runfile->handle = fopen(path, "w");
+    if(!runfile->handle){
+        printf("Could not open runfile %s\n", path);
+        perror("");
+        exit(1);
+    }
+
     runfile->run_infos = calloc(1, 128*1024);
     runfile->benchmarks = calloc(number_of_input_sizes, 128*1024);
     runfile->info_bytes = 0;
