@@ -151,8 +151,8 @@ uint64_t run_shapley(int input_size) {
     
     double* base_x_train = (double*)malloc(sizeof(double)*input_size*feature_len);
     double* base_y_train = (double*)malloc(sizeof(double)*input_size);
-    double* base_x_test = (double*)malloc(sizeof(double)*input_size*feature_len);
-    double* base_y_test = (double*)malloc(sizeof(double)*input_size);
+    double* base_x_test = (double*)malloc(sizeof(double)*num_test_samples*feature_len);
+    double* base_y_test = (double*)malloc(sizeof(double)*num_test_samples);
 
     assert(base_x_train && base_y_train);
 
