@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "runfile.h"
 #include "correctness.h"
+#include "implementations.h"
 
 char *exec_and_get_output(char *cmd){
     char cmd_redirect[512];
@@ -64,6 +65,18 @@ void parse_cmd_options(int argc, char **argv, run_variables_t *run_variables){
             continue;
         }
 
+        if(strcmp(argv[i], "--impl") == 0 || strcmp(argv[i], "--implementation") == 0){
+            if(argc <= i+1){
+                printf("Error: Missing implementation\n");
+                exit(1);
+            }
+
+            run_variables->implementation = argv[i+1];
+
+            i += 2;
+            continue;
+        }
+
         printf("Error: Unknown argument '%s'\n", argv[i]);
         exit(1);
     }
@@ -108,6 +121,7 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
     add_run_info(run_variables->runfile, "cpu", tmpbuf);
     add_run_info_raw(run_variables->runfile, "turbo_boost_disabled", intel_turbo_boost_disabled() ? "true" : "false");
     add_run_info(run_variables->runfile, "arguments", args);
+    add_run_info(run_variables->runfile, "implementation", run_variables->implementation);
     add_run_info_raw(run_variables->runfile, "shapley_correct", shapley_correct ? "true" : "false");
     add_run_info_raw(run_variables->runfile, "knn_correct", exact_knn_correct ? "true" : "false");
     add_run_info_int(run_variables->runfile, "num_runs", run_variables->number_of_runs);
@@ -159,7 +173,7 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
            "Shapley correct:         %s\n\n"\
 
            "\033[1mBenchmark information:\033[0m\n"\
-           "Measured algorithm       %s\n"\
+           "Implementation:          %s\n"\
            "Number of input sizes:   %d\n"\
            "Input sizes:             %s\n"\
            "Number of runs:          %d\n"
@@ -175,7 +189,7 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
            args,
            (knn_correct ? color("Correct", GREEN) : color("Incorrect", RED)),
            (shapley_correct ? color("Correct", GREEN) : color("Incorrect", RED)),
-           "Exact base implementation",
+           run_variables->implementation,
            run_variables->number_of_input_sizes,
            tmpbuf,
            run_variables->number_of_runs

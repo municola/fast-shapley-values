@@ -111,9 +111,11 @@ bool exact_shapley_correct() {
     int* x_tst_knn_gt = (int*)calloc(size_x_tst * size_x_trn, sizeof(int));
     get_true_KNN(x_tst_knn_gt, x_trn, x_tst, size_x_trn, size_x_tst, feature_len);
 
+    // First compute results on base algorithm
     double* base_sp_gt = (double*)calloc(size_x_tst * size_x_trn, sizeof(double));
     compute_single_unweighted_knn_class_shapley(base_sp_gt, x_trn, y_trn, x_tst_knn_gt, y_tst, size_x_trn, size_x_tst, size_y_tst, 1.0);
 
+    // Then check if the specified implementation is correct
     double* optimized_sp_gt = (double*)calloc(size_x_tst * size_x_trn, sizeof(double));
     compute_single_unweighted_knn_class_shapley(optimized_sp_gt, x_trn, y_trn, x_tst_knn_gt, y_tst, size_x_trn, size_x_tst, size_y_tst, 1.0);
 

@@ -7,6 +7,7 @@
 
 #include "tsc_x86.h"
 #include "io.h"
+#include "utils.h"
 
 // Use "make debug" to enable debug prints and debug symbols, etc.
 #ifdef DEBUG
@@ -121,8 +122,10 @@ void compute_shapley_using_improved_mc_approach(double* sp_gt,
     free(pi);
 }
 
-uint64_t run_approx_shapley(size_t feature_len) {
+uint64_t run_approx_shapley(run_variables_t *run_variables, int input_size_no) {
     //init the training data
+    // Todo: Adjust the input size parameter similar to the input size of the exact algorithm 
+    size_t feature_len = run_variables->input_sizes[input_size_no];
     double* base_x_trn = (double*)malloc(sizeof(double)*50000*feature_len);
     double* base_y_trn = (double*)malloc(sizeof(double)*50000);
 
@@ -179,7 +182,9 @@ uint64_t run_approx_shapley(size_t feature_len) {
 
     // Allocate resulting arrays
     double* x_tst_dist_gt = (double*)calloc(size_x_tst * size_x_trn, sizeof(double));
+    double* sp_gt = (double*)calloc(size_x_tst * size_x_trn, sizeof(double));
 
+    start_timer = start_tsc();
     get_dist_KNN(x_tst_dist_gt, x_trn, x_tst, size_x_trn, size_x_tst, feature_len);
 
     #ifdef DEBUG
@@ -193,9 +198,7 @@ uint64_t run_approx_shapley(size_t feature_len) {
     }
     #endif
 
-    double* sp_gt = (double*)calloc(size_x_tst * size_x_trn, sizeof(double));
-
-    start_timer = start_tsc();    
+    
     compute_shapley_using_improved_mc_approach(sp_gt, y_trn, y_tst, x_tst_dist_gt, size_x_trn, size_x_tst, 40, 1);
     end_timer = stop_tsc(start_timer);
 

@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-uint64_t run_shapley(size_t feature_len);
+#include "utils.h"
 
+uint64_t run_shapley(run_variables_t *, int);
 void get_true_KNN(
                 int* result,
                 const double* x_trn,

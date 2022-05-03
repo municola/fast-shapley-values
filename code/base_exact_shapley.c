@@ -7,6 +7,7 @@
 
 #include "tsc_x86.h"
 #include "io.h"
+#include "utils.h"
 
 // Use "make debug" to enable debug prints and debug symbols, etc.
 #ifdef DEBUG
@@ -145,7 +146,8 @@ void compute_single_unweighted_knn_class_shapley(double* sp_gt,
 // }
 
 
-uint64_t run_shapley(int input_size) {
+uint64_t run_shapley(run_variables_t *run_variables, int input_size_no) {  
+    int input_size = run_variables->input_sizes[input_size_no];
     int feature_len = 2048;
     int num_test_samples = 500;
     

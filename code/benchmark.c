@@ -22,7 +22,7 @@ void start_benchmark(run_variables_t *run_variables){
         for(int run=0; run<run_variables->number_of_runs; run++){
             printf("\rBenchmark running: Input size N = %d, Run %d / %d       ", input_size, run+1, run_variables->number_of_runs);
             fflush(stdout);
-            measured_cycles[input_size_no*run_variables->number_of_runs + run] = measure_single_run(run_variables, input_size);
+            measured_cycles[input_size_no*run_variables->number_of_runs + run] = measure_single_run(run_variables, input_size_no);
         }
         printf("\n");
     }
@@ -40,11 +40,11 @@ void start_benchmark(run_variables_t *run_variables){
 
 
 // Runs all the computations that should be measured and returns the number of cycles
-uint64_t measure_single_run(run_variables_t *run_variables, int input_size){
+uint64_t measure_single_run(run_variables_t *run_variables, int input_size_no){
     // Rely on tsc_x86.h to count the cycles
 
     // variant 1: directly return (sub)measurement of shapley
-    return run_shapley(input_size);
+    return run_variables->shapley_func(run_variables, input_size_no);
     
     // variant 2: measure all computations
     uint64_t start, end;

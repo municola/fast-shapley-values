@@ -8,10 +8,12 @@
 #include "utils.h"
 #include "runfile.h"
 #include "benchmark.h"
+#include "implementations.h"
 
 // Public vars
 run_variables_t run_variables = {
     .quiet = false,
+    .implementation = "exact",
     .number_of_runs = 20,
     .number_of_input_sizes = 0,
     .input_sizes = NULL,
@@ -39,6 +41,9 @@ int main(int argc, char *argv[]){
             run_variables.input_sizes[run_variables.number_of_input_sizes++] = 1<<i;
         }
     }
+
+    // Set the function pointers according to the implementation that should be measured
+    set_implementation(&run_variables, run_variables.implementation);
 
     // Open and init runfile (after parsing argv!)
     init_runfile(run_variables.runfile, runfile_name, run_variables.number_of_input_sizes);

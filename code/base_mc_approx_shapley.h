@@ -1,9 +1,9 @@
 #include <stdlib.h>
 
-uint64_t run_approx_shapley(size_t feature_len);
+#include "utils.h"
 
+uint64_t run_approx_shapley(run_variables_t *, int);
 void fisher_yates_shuffle(int* seq, int n);
-
 void get_dist_KNN(
                 double* result,
                 const double* x_trn,
