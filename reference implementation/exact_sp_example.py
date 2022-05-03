@@ -51,18 +51,21 @@ from exact_sp import get_true_KNN, compute_single_unweighted_knn_class_shapley
 x_trn = np.load("../data/features/cifar10/train_features.npy")
 y_trn = np.load("../data/features/cifar10/train_labels.npy")
 
-print(y_trn[:10])
+x_tst = np.load("../data/features/cifar10/test_features.npy")
+y_tst = np.load("../data/features/cifar10/test_labels.npy")
 
 # x_trn, y_trn = shuffle(x_trn, y_trn, random_state=0)
 
 # x_trn = x_trn[:200]
 
 x_trn = np.reshape(x_trn, (-1, 2048))
-# x_tst, y_tst = x_trn[:50], y_trn[:50]
-x_tst, y_tst = x_trn[:5], y_trn[:5]
-x_val, y_val = x_trn[100:1100], y_trn[100:1100]
-# x_trn, y_trn = x_trn[49000:], y_trn[49000:]
-x_trn, y_trn = x_trn[49990:], y_trn[49990:]
+x_tst = np.reshape(x_tst, (-1, 2048))
+
+x_tst, y_tst = x_tst[:500], y_tst[:500]
+# x_tst, y_tst = x_trn[:5], y_trn[:5]
+# x_val, y_val = x_trn[100:1100], y_trn[100:1100]
+x_trn, y_trn = x_trn[:8000], y_trn[:8000]
+# x_trn, y_trn = x_trn[49990:], y_trn[49990:]
 
 # we are using 1-nn classifier
 K = 1
@@ -76,9 +79,7 @@ print(x_tst)
 
 print()
 print("y_trn:")
-print(y_trn)
-
-
+print(y_trn[:500])
 
 print()
 print("y_tst:")

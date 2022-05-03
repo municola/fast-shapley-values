@@ -146,8 +146,8 @@ void compute_single_unweighted_knn_class_shapley(double* sp_gt,
 
 
 uint64_t run_shapley(int input_size) {
-    int feature_len = 1024;
-    int num_test_samples = 5;
+    int feature_len = 2048;
+    int num_test_samples = 500;
     
     double* base_x_train = (double*)malloc(sizeof(double)*input_size*feature_len);
     double* base_y_train = (double*)malloc(sizeof(double)*input_size);
@@ -159,8 +159,8 @@ uint64_t run_shapley(int input_size) {
     //Read binary training data into the arrays
     read_bin_file_known_size(base_x_train, "../data/features/cifar10/train_features.bin", input_size*feature_len);
     read_bin_file_known_size(base_y_train, "../data/features/cifar10/train_lables.bin", input_size);
-    read_bin_file_known_size(base_x_test, "../data/features/cifar10/train_features.bin", num_test_samples*feature_len);
-    read_bin_file_known_size(base_y_test, "../data/features/cifar10/train_lables.bin", num_test_samples);
+    read_bin_file_known_size(base_x_test, "../data/features/cifar10/test_features.bin", num_test_samples*feature_len);
+    read_bin_file_known_size(base_y_test, "../data/features/cifar10/test_lables.bin", num_test_samples);
 
     // debug_print("base_y:\n");
     // for (int i = 0; i<10;i++) {
@@ -199,8 +199,16 @@ uint64_t run_shapley(int input_size) {
     }
 
     debug_print("%s", "\n");
+    debug_print("%s", "y_train:\n");
+    for (int i = 0; i<500;i++) {
+        debug_print("%f, ", y_train[i]);
+    }
+    debug_print("%s", "\n");
+    debug_print("%s", "\n");
+
+    debug_print("%s", "\n");
     debug_print("%s", "y_test:\n");
-    for (int i = 0; i<size_y_test;i++) {
+    for (int i = 0; i<500;i++) {
         debug_print("%f, ", y_test[i]);
     }
     debug_print("%s", "\n");
