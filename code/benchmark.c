@@ -14,77 +14,77 @@
 extern double *dist_gt;
 
 // Setup memory and "problem sizes" (feature length, etc.) given the input size
-context_t get_context(int input_size){
-    context_t context = {
-        .input_size = input_size,
-        .feature_len = 2048,
-        .num_test_samples = 500,
+void init_context(context_t *ctx, int input_size){
+    ctx->input_size = input_size;
+    ctx->feature_len = 2048;
+    ctx->num_test_samples = 500;
 
-        .x_trn = NULL,
-        .x_tst = NULL,
+    ctx->x_trn = NULL;
+    ctx->x_tst = NULL;
 
-        .y_trn = NULL,
-        .y_tst = NULL,
-        .dist_gt = NULL,
-        .sp_gt = NULL,
-
-
-        // KNN result
-        .x_test_knn_gt = NULL,
+    ctx->y_trn = NULL;
+    ctx->y_tst = NULL;
+    ctx->dist_gt = NULL;
+    ctx->sp_gt = NULL;
 
 
-        .size_x_tst = input_size,
-        .size_y_tst = input_size,
+    // KNN result
+    ctx->x_test_knn_gt = NULL;
 
-        .size_x_trn = input_size,        
-        .size_y_trn = input_size,
+    ctx->size_x_tst = input_size;
+    ctx->size_y_tst = input_size;
+
+    ctx->size_x_trn = input_size;
+    ctx->size_y_trn = input_size;
     
-        .T = 1,
-        .K = 1
-    };
+    ctx->T = 1;
+    ctx->K = 1;
+    
 
     // Allocate memory - Load data
-    if(context.x_trn) free(context.x_trn);
-    context.x_trn = calloc(context.input_size * context.feature_len, sizeof(double));
+    if(ctx->x_trn) free(ctx->x_trn);
+    ctx->x_trn = calloc(ctx->input_size * ctx->feature_len, sizeof(double));
 
-    if(context.y_trn) free(context.y_trn);
-    context.y_trn = calloc(context.input_size, sizeof(double));
+    if(ctx->y_trn) free(ctx->y_trn);
+    ctx->y_trn = calloc(ctx->input_size, sizeof(double));
     
-    if(context.x_tst) free(context.x_tst);
-    context.x_tst = calloc(context.num_test_samples * context.feature_len, sizeof(double));
+    if(ctx->x_tst) free(ctx->x_tst);
+    ctx->x_tst = calloc(ctx->num_test_samples * ctx->feature_len, sizeof(double));
 
-    if(context.y_tst) free(context.y_tst);
-    context.y_tst = calloc(context.num_test_samples, sizeof(double));
+    if(ctx->y_tst) free(ctx->y_tst);
+    ctx->y_tst = calloc(ctx->num_test_samples, sizeof(double));
     
-    if(context.x_test_knn_gt) free(context.x_test_knn_gt);
-    context.x_test_knn_gt = calloc(context.num_test_samples * context.input_size, sizeof(int));
+    if(ctx->x_test_knn_gt) free(ctx->x_test_knn_gt);
+    ctx->x_test_knn_gt = calloc(ctx->num_test_samples * ctx->input_size, sizeof(int));
 
-    if(context.sp_gt) free(context.sp_gt);
-    context.sp_gt = calloc(context.num_test_samples * context.input_size, sizeof(double));
+    if(ctx->sp_gt) free(ctx->sp_gt);
+    ctx->sp_gt = calloc(ctx->num_test_samples * ctx->input_size, sizeof(double));
     
     // Allocate dist_gt and set global variable (needed for special compare func.!)
-    if(context.dist_gt) free(context.dist_gt);
-    context.dist_gt = calloc(context.feature_len * context.input_size, sizeof(double));
-    dist_gt = context.dist_gt;
+    if(ctx->dist_gt) free(ctx->dist_gt);
+    ctx->dist_gt = calloc(ctx->feature_len * ctx->input_size, sizeof(double));
+    dist_gt = ctx->dist_gt;
 
-    read_bin_file_known_size(context.x_trn, "../data/features/cifar10/train_features.bin", context.input_size*context.feature_len);
-    read_bin_file_known_size(context.y_trn, "../data/features/cifar10/train_labels.bin", context.input_size*1);
-    read_bin_file_known_size(context.x_tst, "../data/features/cifar10/test_features.bin", context.num_test_samples*context.feature_len);
-    read_bin_file_known_size(context.y_tst, "../data/features/cifar10/test_labels.bin", context.num_test_samples);
-
-    return context;
+    read_bin_file_known_size(ctx->x_trn, "../data/features/cifar10/train_features.bin", ctx->input_size*ctx->feature_len);
+    read_bin_file_known_size(ctx->y_trn, "../data/features/cifar10/train_labels.bin", ctx->input_size*1);
+    read_bin_file_known_size(ctx->x_tst, "../data/features/cifar10/test_features.bin", ctx->num_test_samples*ctx->feature_len);
+    read_bin_file_known_size(ctx->y_tst, "../data/features/cifar10/test_labels.bin", ctx->num_test_samples);
 }
 
 
 void start_benchmark(run_variables_t *run_variables){
     uint64_t *measured_cycles = calloc(run_variables->number_of_input_sizes * run_variables->number_of_runs, sizeof(uint64_t));
     
+    // Context (i.e. common test/training data used in the implementations)
+    // (initialised once per input size)
+    context_t context;
+
     // Try to run measurements as consecutive as possible, to avoid cache pollution
     // or other interferings from the infrastructure
     for(int input_size_no=0; input_size_no<run_variables->number_of_input_sizes; input_size_no++){
         // Get context / setup environment for all runs of this input size
         int input_size = run_variables->input_sizes[input_size_no];
-        context_t context = get_context(input_size);
+        init_context(&context, input_size);
 
         for(int run=0; run<run_variables->number_of_runs; run++){
             printf("\rBenchmark running: Input size N = %d, Run %d / %d       ", input_size, run+1, run_variables->number_of_runs);

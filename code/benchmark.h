@@ -25,7 +25,7 @@ typedef struct context {
 
 void start_benchmark(run_variables_t *run_variables);
 uint64_t measure_single_run(run_variables_t *run_variables, context_t *context);
-context_t get_context(int input_size);
+void init_context(context_t *ctx, int input_size);
 
 
 #endif
