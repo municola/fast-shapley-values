@@ -17,7 +17,7 @@ typedef struct run_variables {
     bool quiet;
     char *implementation;
     void (*knn_func)();
-    uint64_t (*shapley_func)(struct run_variables *, int);
+    uint64_t (*shapley_func)(void *);
     int number_of_runs;
     int number_of_input_sizes;
     int *input_sizes;

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include  <math.h>
+#include <math.h>
 #include <stdbool.h>
 #include <assert.h>
 
@@ -24,6 +24,9 @@ double nrm_sqr_diff(double *x, double *y, int n) {
 bool exact_knn_correct() {
     size_t feature_len = 2048;
 
+    return false;
+
+    /*
     //init the training data
     double* base_x_trn = (double*)malloc(sizeof(double)*50000*feature_len);
     double* base_y_trn = (double*)malloc(sizeof(double)*50000);
@@ -71,9 +74,13 @@ bool exact_knn_correct() {
     free(optimized_x_tst_knn_gt);
 
     return error < EPS;
+    */
 }
 
 bool exact_shapley_correct() {
+    return false;
+
+    /*
     size_t feature_len = 2048;
 
     //init the training data
@@ -107,7 +114,9 @@ bool exact_shapley_correct() {
     double y_tst[10] = {6.0, 9.0, 9.0, 4.0, 1.0, 1.0, 2.0, 7.0, 8.0, 3.0};
     size_t size_y_tst = 5;
 
+
     // Allocate resulting arrays
+    //context_t ctxt = get_context()
     int* x_tst_knn_gt = (int*)calloc(size_x_tst * size_x_trn, sizeof(int));
     get_true_KNN(x_tst_knn_gt, x_trn, x_tst, size_x_trn, size_x_tst, feature_len);
 
@@ -128,4 +137,5 @@ bool exact_shapley_correct() {
     free(optimized_sp_gt);
 
     return error < EPS;
+    */
 }
