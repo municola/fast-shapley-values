@@ -23,8 +23,8 @@
     - result is a 2D array of size_x_tst * size_x_trn
     - result[i][j] is the distance of the jth train point regarding to the ith test point.
    */
-void get_dist_KNN(context_t *ctxt) {
-
+void get_dist_KNN(void *context) {
+    context_t *ctxt = (context_t *)context;
     double curr_dist;
 
     // Loop through each test point
@@ -64,8 +64,8 @@ void fisher_yates_shuffle(int* seq, int n) {
     }
 }
 
-void compute_shapley_using_improved_mc_approach(context_t *ctx) {
-
+void compute_shapley_using_improved_mc_approach(void *context) {
+    context_t *ctx = (context_t *)context; 
     int* pi = (int*)malloc(sizeof(int)*ctx->size_x_trn);
     double* phi = (double*)malloc(sizeof(double)*ctx->size_x_trn*ctx->T);
 

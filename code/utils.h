@@ -6,6 +6,15 @@
 
 #include "runfile.h"
 
+// Use "make debug" to enable debug prints and debug symbols, etc.
+#ifdef DEBUG
+    #define debug_print(fmt, ...) \
+                do { fprintf(stderr, fmt, __VA_ARGS__); } while (0)
+#else
+    #define debug_print(fmt, ...) 
+#endif
+
+
 enum COLOR {
     RED=91,
     GREEN=92
@@ -16,8 +25,12 @@ typedef enum COLOR COLOR;
 typedef struct run_variables {
     bool quiet;
     char *implementation;
-    void (*knn_func)();
-    uint64_t (*shapley_func)(void *);
+
+    /* void* is actually context_t* */
+    uint64_t (*shapley_measurement_func)(void *);
+    void (*knn_func)(void *);
+    void (*shapley_func)(void *);
+    
     int number_of_runs;
     int number_of_input_sizes;
     int *input_sizes;

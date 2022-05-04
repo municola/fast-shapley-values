@@ -101,8 +101,23 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
     }
 
     // Correctness tests
-    bool shapley_correct = exact_shapley_correct();
-    bool knn_correct = exact_knn_correct();
+    int test_input_size = 5;
+    run_variables_t test_vars = {
+        .number_of_runs = 1,
+        .number_of_input_sizes = 1,
+        .input_sizes = &test_input_size
+    };
+
+    // Use the correct function pointers to test the right functions for correctness
+    set_implementation(&test_vars, run_variables->implementation);
+
+    // Setup the context / init memory, etc.
+    context_t test_ctxt;
+    init_context(&test_ctxt, test_input_size);
+    
+    // Actual correctness tests
+    bool shapley_correct = exact_shapley_correct(&test_vars, (void*)&test_ctxt);
+    bool knn_correct = exact_knn_correct(&test_vars, (void*)&test_ctxt);
 
     // Write collected info to the runfile:
     char tmpbuf[512]; 
@@ -123,7 +138,7 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
     add_run_info(run_variables->runfile, "arguments", args);
     add_run_info(run_variables->runfile, "implementation", run_variables->implementation);
     add_run_info_raw(run_variables->runfile, "shapley_correct", shapley_correct ? "true" : "false");
-    add_run_info_raw(run_variables->runfile, "knn_correct", exact_knn_correct ? "true" : "false");
+    add_run_info_raw(run_variables->runfile, "knn_correct", knn_correct ? "true" : "false");
     add_run_info_int(run_variables->runfile, "num_runs", run_variables->number_of_runs);
     add_run_info_int(run_variables->runfile, "num_input_sizes", run_variables->number_of_input_sizes);
 

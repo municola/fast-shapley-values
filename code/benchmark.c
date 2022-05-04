@@ -109,7 +109,7 @@ void start_benchmark(run_variables_t *run_variables){
 // Runs all the computations that should be measured and returns the number of cycles
 uint64_t measure_single_run(run_variables_t *run_variables, context_t *context){
     // variant 1: directly return (sub)measurement of shapley
-    return run_variables->shapley_func(context);
+    return run_variables->shapley_measurement_func(context);
     
     // variant 2: measure all computations
     uint64_t start, end;

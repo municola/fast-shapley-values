@@ -10,14 +10,6 @@
 #include "utils.h"
 #include "benchmark.h"
 
-// Use "make debug" to enable debug prints and debug symbols, etc.
-#ifdef DEBUG
-    #define debug_print(fmt, ...) \
-                do { fprintf(stderr, fmt, __VA_ARGS__); } while (0)
-#else
-    #define debug_print(fmt, ...) 
-#endif
-
 double* dist_gt;
 
 // Custom compare function for sorting, since we try to replicate numpys argsort function
@@ -43,7 +35,8 @@ int compar (const void *a, const void *b)
     - result is a 2D array of size_x_tst * size_x_trn
     - result[i][j] is the proximity rank of the jth train point regarding the ith test point.
    */
-void get_true_KNN(context_t *context) {
+void get_true_KNN(void *context_ptr) {
+    context_t *context = (context_t *) context_ptr;
     double curr_dist;
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
     //dist_gt = (double*)calloc(size_x_trn, sizeof(double));
@@ -86,7 +79,8 @@ void get_true_KNN(context_t *context) {
     debug_print("%s", "Exact: Got KNN done :)\n");
 }
 
-void compute_single_unweighted_knn_class_shapley(context_t *context){
+void compute_single_unweighted_knn_class_shapley(void *context_ptr){
+    context_t *context = (context_t*)context_ptr;
     debug_print("%s", "\nStart Shapley computation:\n");
     for(int j=0; j<context->size_x_tst;j++){
         // debug_print("  iteration: j=%d\n", j);
