@@ -26,35 +26,44 @@ context_t get_context(int input_size){
         .y_trn = NULL,
         .y_tst = NULL,
         .dist_gt = NULL,
+        .sp_gt = NULL,
+
+
+        // KNN result
+        .x_test_knn_gt = NULL,
+
 
         .size_x_tst = input_size,
         .size_y_tst = input_size,
 
         .size_x_trn = input_size,        
         .size_y_trn = input_size,
-
-
-        // KNN result
-        .x_test_knn_gt = NULL,
-        
-        .sp_gt = NULL,
-
+    
         .T = 1,
         .K = 1
     };
 
     // Allocate memory - Load data
+    if(context.x_trn) free(context.x_trn);
     context.x_trn = calloc(context.input_size * context.feature_len, sizeof(double));
+
+    if(context.y_trn) free(context.y_trn);
     context.y_trn = calloc(context.input_size, sizeof(double));
     
+    if(context.x_tst) free(context.x_tst);
     context.x_tst = calloc(context.num_test_samples * context.feature_len, sizeof(double));
+
+    if(context.y_tst) free(context.y_tst);
     context.y_tst = calloc(context.num_test_samples, sizeof(double));
     
-
+    if(context.x_test_knn_gt) free(context.x_test_knn_gt);
     context.x_test_knn_gt = calloc(context.num_test_samples * context.input_size, sizeof(int));
+
+    if(context.sp_gt) free(context.sp_gt);
     context.sp_gt = calloc(context.num_test_samples * context.input_size, sizeof(double));
     
     // Allocate dist_gt and set global variable (needed for special compare func.!)
+    if(context.dist_gt) free(context.dist_gt);
     context.dist_gt = calloc(context.feature_len * context.input_size, sizeof(double));
     dist_gt = context.dist_gt;
 
@@ -62,7 +71,6 @@ context_t get_context(int input_size){
     read_bin_file_known_size(context.y_trn, "../data/features/cifar10/train_labels.bin", context.input_size*1);
     read_bin_file_known_size(context.x_tst, "../data/features/cifar10/test_features.bin", context.num_test_samples*context.feature_len);
     read_bin_file_known_size(context.y_tst, "../data/features/cifar10/test_labels.bin", context.num_test_samples);
-
 
     return context;
 }
