@@ -32,9 +32,11 @@ def read_runfiles():
             # Todo: Determine median / best, etc. here!
             stripped = {
                 "name" : f,
+                "label" : (rf["label"] if "label" in rf.keys() else f),
                 "input_sizes" : rf["input_sizes"],
                 "num_runs" : rf["num_runs"],
                 "implementation" : rf["implementation"],
+                "turbo_boost_disabled" : rf["turbo_boost_disabled"],
                 "knn_correct" : rf["knn_correct"],
                 "shapley_correct" : rf["shapley_correct"]
             }
@@ -104,10 +106,19 @@ main = """
     function get_table_entry(i, runfile, new_entry) {
         var new_badge = '';
         if(new_entry){
-            new_badge = '<span class="badge bg-info">new</span>';
+            new_badge = '<span class="badge bg-info">new</span>&nbsp;&nbsp;';
         }
-        var impl_badge = '<span class="badge bg-secondary">' + runfile["implementation"] + '</span>';
-        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["name"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["name"] + '&nbsp;&nbsp;' + impl_badge + new_badge + '</td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["num_runs"] + '</td></tr>';
+        var boost_badge = '';
+        console.log(runfile["turbo_boost_disabled"]);
+        if(runfile["turbo_boost_disabled"]){
+            boost_badge = '<span class="badge bg-success">no turbo boost</span>&nbsp;&nbsp;';
+        } else {
+            boost_badge = '<span class="badge bg-danger">turbo boost</span>&nbsp;&nbsp;';
+        }
+        
+        var impl_badge = '<span class="badge bg-secondary">' + runfile["implementation"] + '</span>&nbsp;&nbsp;';
+        
+        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["label"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["label"] + '&nbsp;&nbsp;' + impl_badge + boost_badge + new_badge + '</td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["num_runs"] + '</td></tr>';
     }
 
     function do_runtime_plots() {

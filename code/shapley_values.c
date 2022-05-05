@@ -14,7 +14,7 @@
 run_variables_t run_variables = {
     .quiet = false,
     .implementation = "exact",
-    .number_of_runs = 20,
+    .number_of_runs = 5,
     .number_of_input_sizes = 0,
     .input_sizes = NULL,
     .runfile_path = "",
