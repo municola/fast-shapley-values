@@ -33,7 +33,10 @@ def read_runfiles():
             stripped = {
                 "name" : f,
                 "input_sizes" : rf["input_sizes"],
-                "num_runs" : rf["num_runs"]
+                "num_runs" : rf["num_runs"],
+                "implementation" : rf["implementation"],
+                "knn_correct" : rf["knn_correct"],
+                "shapley_correct" : rf["shapley_correct"]
             }
 
 
@@ -103,7 +106,8 @@ main = """
         if(new_entry){
             new_badge = '<span class="badge bg-info">new</span>';
         }
-        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["name"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["name"] + new_badge + '</td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["num_runs"] + '</td></tr>';
+        var impl_badge = '<span class="badge bg-secondary">' + runfile["implementation"] + '</span>';
+        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["name"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["name"] + '&nbsp;&nbsp;' + impl_badge + new_badge + '</td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["num_runs"] + '</td></tr>';
     }
 
     function do_runtime_plots() {
