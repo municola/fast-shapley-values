@@ -5,6 +5,7 @@
 
 #include "io.h"
 #include "base_exact_shapley.h"
+#include "knn.h"
 
 #define EPS 10e-3
 

@@ -22,3 +22,6 @@ Already prepared
 
 ## Example
 1. Run dataset/cifar10_generation.py
+2. cd code
+3. make
+4. ./shapely_values
