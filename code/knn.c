@@ -131,7 +131,7 @@ uint64_t knn_base(void *context_ptr) {
     return end_timer;
 }
 
-uint64_t opt1_knn(void *context_ptr) {
+uint64_t knn_opt1(void *context_ptr) {
     uint64_t start_timer, end_timer;
     start_timer = start_tsc();
 

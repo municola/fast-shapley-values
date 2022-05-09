@@ -29,8 +29,8 @@ void set_implementation(run_variables_t *run_variables, char *implementation){
     }
 
     if(strcmp(implementation, "only_knn_opt1") == 0){
-        run_variables->shapley_measurement_func = &opt1_knn;
-        run_variables->knn_func = &opt1_knn;
+        run_variables->shapley_measurement_func = &knn_opt1;
+        run_variables->knn_func = &knn_opt1;
         run_variables->shapley_func = &compute_single_unweighted_knn_class_shapley;
         return;
     }
