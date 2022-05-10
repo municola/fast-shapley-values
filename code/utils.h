@@ -28,7 +28,7 @@ typedef struct run_variables {
 
     /* void* is actually context_t* */
     uint64_t (*shapley_measurement_func)(void *);
-    bool (*correctness_check_func)(void *, void *);
+    bool (*correctness_check_func)(struct run_variables *, void *);
     
     // void (*knn_func)(void *);
     // void (*shapley_func)(void *);

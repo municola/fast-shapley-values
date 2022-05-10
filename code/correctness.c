@@ -78,7 +78,7 @@ bool approx_correct(run_variables_t *run_variables, void *context) {
 
 
     double error_shapley = nrm_sqr_diff((double *)ctx->sp_gt, (double *)test_ctx2->sp_gt, ctx->input_size*ctx->input_size);
-    debug_print("Shapley Correctness: Error < EPS: %f < %f", error_shapley, EPS);
+    debug_print("Shapley Correctness: Error < EPS: %f < %f", error_shaple, EPS);
 
     double error = error_knn + error_shapley;
     return error < EPS;
