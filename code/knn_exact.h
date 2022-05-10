@@ -6,3 +6,5 @@
 void get_true_exact_KNN(void *context);
 uint64_t knn__exact_opt1(void *context);
 uint64_t knn_exact_base(void *context);
+
+int compar(const void* a, const void* b);

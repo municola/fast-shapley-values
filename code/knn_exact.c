@@ -154,3 +154,5 @@ uint64_t knn__exact_opt1(void *context_ptr) {
     end_timer = stop_tsc(start_timer);
     return end_timer;
 }
+
+
