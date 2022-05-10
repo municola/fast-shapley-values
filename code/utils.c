@@ -101,7 +101,7 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
     }
 
     // Correctness tests
-    int test_input_size = 5;
+    int test_input_size = 10;
     run_variables_t test_vars = {
         .number_of_runs = 1,
         .number_of_input_sizes = 1,
@@ -117,7 +117,13 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
     
     // Actual correctness tests
     bool shapley_correct = true; //exact_shapley_correct(&test_vars, (void*)&test_ctxt);
-    bool knn_correct = true; //exact_knn_correct(&test_vars, (void*)&test_ctxt);
+    bool knn_correct = exact_knn_correct(&test_vars, (void*)&test_ctxt);
+    #ifdef DEBUG
+    if(!shapley_correct || !knn_correct){
+        printf("Correctness tests failed\n");
+        exit(1);
+    }
+    #endif
 
     // Write collected info to the runfile:
     char tmpbuf[512]; 

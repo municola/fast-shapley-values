@@ -61,18 +61,32 @@ void get_true_KNN(void *context_ptr) {
         }
 
         // Sanity check in order to compare with python
-        // debug_print("dist_gt:\n");
-        //     for (int j = 0; j<10;j++) {
-        //         debug_print("%f, ", dist_gt[j]);
-        //     }
-        //     debug_print("\n");
+        debug_print("%s", "get_true_KNN: dist_gt:\n");
+            for (int j = 0; j<10;j++) {
+                debug_print("%f, ", dist_gt[j]);
+            }
+            debug_print("%s", "\n");
 
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
 
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
+
+        debug_print("%s", "Sorted Indexes\n");
+        for (int j = 0; j<context->size_x_trn;j++) {
+            debug_print("%d, ", sorted_indexes[j]);
+        }
+        debug_print("%s", "\n");
+
+
+        // Sanity check in order to compare with python
+        debug_print("%s", "get_true_KNN: x_test_knn_gt:\n");
+        for (int j = 0; j<context->size_x_trn; j++) {
+            debug_print("%f, ", context->x_test_knn_gt[i_tst*context->size_x_trn + j]);
+        }
+        debug_print("%s", "\n");
+        
     }
-    
     // debug_print("Get KNN done :)\n", );
     debug_print("%s", "Exact: Got KNN done :)\n");
 }

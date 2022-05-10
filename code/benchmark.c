@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <assert.h>
 #include <time.h>
 
 #include "tsc_x86.h"
@@ -17,7 +18,9 @@ extern double *dist_gt;
 void init_context(context_t *ctx, int input_size){
     ctx->input_size = input_size;
     ctx->feature_len = 2048;
-    ctx->num_test_samples = 500;
+    // ctx->num_test_samples = 500;
+
+    assert(ctx->input_size % 2 ==0);
 
     ctx->x_trn = NULL;
     ctx->x_tst = NULL;
@@ -31,11 +34,11 @@ void init_context(context_t *ctx, int input_size){
     // KNN result
     ctx->x_test_knn_gt = NULL;
 
-    ctx->size_x_tst = input_size;
-    ctx->size_y_tst = input_size;
+    ctx->size_x_tst = input_size / 2;
+    ctx->size_y_tst = input_size / 2;
 
-    ctx->size_x_trn = input_size;
-    ctx->size_y_trn = input_size;
+    ctx->size_x_trn = input_size / 2;
+    ctx->size_y_trn = input_size / 2 ;
     
     ctx->T = 1;
     ctx->K = 1;
@@ -43,32 +46,32 @@ void init_context(context_t *ctx, int input_size){
 
     // Allocate memory - Load data
     if(ctx->x_trn) free(ctx->x_trn);
-    ctx->x_trn = calloc(ctx->input_size * ctx->feature_len, sizeof(double));
+    ctx->x_trn = calloc(ctx->size_x_trn * ctx->feature_len, sizeof(double));
 
     if(ctx->y_trn) free(ctx->y_trn);
-    ctx->y_trn = calloc(ctx->input_size, sizeof(double));
+    ctx->y_trn = calloc(ctx->size_y_trn, sizeof(double));
     
     if(ctx->x_tst) free(ctx->x_tst);
-    ctx->x_tst = calloc(ctx->num_test_samples * ctx->feature_len, sizeof(double));
+    ctx->x_tst = calloc(ctx->size_x_tst * ctx->feature_len, sizeof(double));
 
     if(ctx->y_tst) free(ctx->y_tst);
-    ctx->y_tst = calloc(ctx->num_test_samples, sizeof(double));
+    ctx->y_tst = calloc(ctx->size_y_tst, sizeof(double));
     
     if(ctx->x_test_knn_gt) free(ctx->x_test_knn_gt);
-    ctx->x_test_knn_gt = calloc(ctx->num_test_samples * ctx->input_size, sizeof(int));
+    ctx->x_test_knn_gt = calloc(ctx->size_x_trn * ctx->size_x_tst, sizeof(int));
 
     if(ctx->sp_gt) free(ctx->sp_gt);
-    ctx->sp_gt = calloc(ctx->num_test_samples * ctx->input_size, sizeof(double));
+    ctx->sp_gt = calloc(ctx->size_x_trn * ctx->size_x_tst, sizeof(double));
     
     // Allocate dist_gt and set global variable (needed for special compare func.!)
     if(ctx->dist_gt) free(ctx->dist_gt);
-    ctx->dist_gt = calloc(ctx->feature_len * ctx->input_size, sizeof(double));
+    ctx->dist_gt = calloc(ctx->feature_len * ctx->size_x_tst, sizeof(double));
     dist_gt = ctx->dist_gt;
 
-    read_bin_file_known_size(ctx->x_trn, "../data/features/cifar10/train_features.bin", ctx->input_size*ctx->feature_len);
-    read_bin_file_known_size(ctx->y_trn, "../data/features/cifar10/train_labels.bin", ctx->input_size*1);
-    read_bin_file_known_size(ctx->x_tst, "../data/features/cifar10/test_features.bin", ctx->num_test_samples*ctx->feature_len);
-    read_bin_file_known_size(ctx->y_tst, "../data/features/cifar10/test_labels.bin", ctx->num_test_samples);
+    read_bin_file_known_size(ctx->x_trn, "../data/features/cifar10/train_features.bin", ctx->size_x_trn*ctx->feature_len);
+    read_bin_file_known_size(ctx->y_trn, "../data/features/cifar10/train_labels.bin", ctx->size_y_trn);
+    read_bin_file_known_size(ctx->x_tst, "../data/features/cifar10/test_features.bin", ctx->size_x_tst*ctx->feature_len);
+    read_bin_file_known_size(ctx->y_tst, "../data/features/cifar10/test_labels.bin", ctx->size_y_tst);
 }
 
 

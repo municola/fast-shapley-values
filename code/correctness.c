@@ -12,6 +12,7 @@
 double nrm_sqr_diff(double *x, double *y, int n) {
     double nrm_sqr = 0.0;
     for(int i = 0; i < n; i++) {
+        debug_print("nrm_sqr_diff: %f %f\n", x[i], y[i]);
         nrm_sqr += (x[i] - y[i]) * (x[i] - y[i]);
     }
     
@@ -29,13 +30,14 @@ bool exact_knn_correct(run_variables_t *run_variables, void *context) {
     context_t *ctx2 = &test_context2;
 
     debug_print("Input size: %d\n", ctx->input_size);
-    init_context(ctx, ctx->input_size);
-    init_context(ctx2, ctx->input_size);
 
+    init_context(ctx, ctx->input_size);
     get_true_KNN(context);
+
+    init_context(ctx2, ctx->input_size);
     run_variables->knn_func((void*)ctx2);
 
-    double error = nrm_sqr_diff((double *)ctx->x_test_knn_gt, (double *)ctx2->x_test_knn_gt, ctx->input_size);
+    double error = nrm_sqr_diff((double *)ctx->x_test_knn_gt, (double *)ctx2->x_test_knn_gt, ctx->input_size*ctx->input_size);
     debug_print("KNN Correctness: Error < EPS: %f < %f", error, EPS);
 
     return error < EPS;
