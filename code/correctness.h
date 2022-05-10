@@ -3,7 +3,8 @@
 
 #include "benchmark.h"
 
-bool exact_knn_correct(run_variables_t *run_variables, void *context);
+bool exact_correct(run_variables_t *run_variables, void *context);
+bool approx_correct(run_variables_t *run_variables, void *context);
 bool exact_shapley_correct(run_variables_t *run_variables, void *context);
 
 #endif

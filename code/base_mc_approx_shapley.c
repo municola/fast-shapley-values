@@ -9,6 +9,7 @@
 #include "io.h"
 #include "utils.h"
 #include "benchmark.h"
+#include "knn_approx.h"
 
 // Use "make debug" to enable debug prints and debug symbols, etc.
 #ifdef DEBUG
@@ -17,38 +18,6 @@
 #else
     #define debug_print(fmt, ...) 
 #endif
-
-  /*
-    Expected Behavior:
-    - result is a 2D array of size_x_tst * size_x_trn
-    - result[i][j] is the distance of the jth train point regarding to the ith test point.
-   */
-void get_dist_KNN(void *context) {
-    context_t *ctxt = (context_t *)context;
-    double curr_dist;
-
-    // Loop through each test point
-    for (int i_tst=0; i_tst<ctxt->size_x_tst; i_tst++) {
-        // Loop through each train point
-        for (int i_trn=0; i_trn<ctxt->size_x_trn; i_trn++){
-            // calculate the distance between the two points, just pythagoras...
-            curr_dist = 0;
-            for (int i_feature=0; i_feature<ctxt->feature_len; i_feature++) {
-                curr_dist += 
-                pow(ctxt->x_trn[i_trn*ctxt->feature_len + i_feature] - 
-                        ctxt->x_tst[i_tst*ctxt->feature_len + i_feature], 2);
-            }
-            curr_dist = sqrt(curr_dist);
-
-            ctxt->dist_gt[i_trn] = curr_dist;
-        }
-
-        // copy to result array
-        memcpy(ctxt->x_test_knn_gt +(i_tst * ctxt->size_x_trn), ctxt->dist_gt, ctxt->size_x_trn * sizeof(double));
-    }
-    
-    debug_print("%s", "Approx: Got KNN done :)\n");
-}
 
 // randomly permutes an array [1, ..., n] in place
 void fisher_yates_shuffle(int* seq, int n) {
@@ -65,9 +34,11 @@ void fisher_yates_shuffle(int* seq, int n) {
 }
 
 void compute_shapley_using_improved_mc_approach(void *context) {
+
+    return;
     context_t *ctx = (context_t *)context; 
-    int* pi = (int*)malloc(sizeof(int)*ctx->size_x_trn);
-    double* phi = (double*)malloc(sizeof(double)*ctx->size_x_trn*ctx->T);
+    int* pi = (int*)calloc(ctx->size_x_trn, sizeof(int));
+    double* phi = (double*)calloc(ctx->size_x_trn * ctx->T, sizeof(double));
 
     // calculate the shapley values for each test point j
     for (int j = 0; j < ctx->size_x_tst; j++) {
@@ -144,7 +115,7 @@ uint64_t run_approx_shapley(void *context) {
     uint64_t start_timer, end_timer;
 
     start_timer = start_tsc();
-    get_dist_KNN(ctx);
+    get_true_approx_KNN(ctx);
 
     #ifdef DEBUG
     debug_print("%s", "\n");
@@ -174,4 +145,50 @@ uint64_t run_approx_shapley(void *context) {
     #endif
 
     return end_timer;
+}
+
+void opt1_compute_shapley_using_improved_mc_approach(void *context) {
+
+    context_t *ctx = (context_t *)context; 
+    int* pi = (int*)calloc(ctx->size_x_trn, sizeof(int));
+    double* phi = (double*)calloc(ctx->size_x_trn * ctx->T, sizeof(double));
+
+    // calculate the shapley values for each test point j
+    for (int j = 0; j < ctx->size_x_tst; j++) {
+    
+        // approximate by using T different random permutations pi
+        for (int t = 0; t < ctx->T; t++) {
+
+            fisher_yates_shuffle(pi, ctx->size_x_trn);
+
+            // nearest neighbor in set of training points pi_0 to pi_i
+            int nn = -1;
+
+            // for each point in the permutation check if it changes test accuracy
+            for (int i = 0; i < ctx->size_x_trn; i++) {
+                
+                // check if pi_i is the new nearest neighbor (only then it changes the test accuracy)
+                if (nn == -1 || ctx->dist_gt[j*ctx->size_x_trn+pi[i]] < ctx->dist_gt[j*ctx->size_x_trn+nn]) {
+                    double v_incl_i = (double)(ctx->y_trn[pi[i]] == ctx->y_tst[j]);
+                    double v_excl_i = (nn == -1) ? 0.0 : (double)(ctx->y_trn[nn] == ctx->y_tst[j]);
+                    phi[t*ctx->size_x_trn+pi[i]] = v_incl_i - v_excl_i;
+                    nn = pi[i];
+                } else {
+                    phi[t*ctx->size_x_trn+pi[i]] = phi[t*ctx->size_x_trn+pi[i-1]];
+                }
+            }
+        }
+        for (int i = 0; i < ctx->size_x_trn; i++) {
+            ctx->sp_gt[j*ctx->size_x_trn+i] = 0;
+            for (int t = 0; t < ctx->T; t++) {
+                ctx->sp_gt[j*ctx->size_x_trn+i] += phi[t*ctx->size_x_trn+i];
+            }
+            ctx->sp_gt[j*ctx->size_x_trn+i] /= (double)(ctx->T);
+        }
+    }
+
+    free(phi);
+    free(pi);
+
+    debug_print("%s", "Approx: Got Shapley done :)\n");
 }

@@ -28,8 +28,10 @@ typedef struct run_variables {
 
     /* void* is actually context_t* */
     uint64_t (*shapley_measurement_func)(void *);
-    void (*knn_func)(void *);
-    void (*shapley_func)(void *);
+    bool (*correctness_check_func)(void *, void *);
+    
+    // void (*knn_func)(void *);
+    // void (*shapley_func)(void *);
     
     int number_of_runs;
     int number_of_input_sizes;

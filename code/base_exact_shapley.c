@@ -9,7 +9,7 @@
 #include "io.h"
 #include "utils.h"
 #include "benchmark.h"
-#include "knn.h"
+#include "knn_exact.h"
 
 void compute_single_unweighted_knn_class_shapley(void *context_ptr){
     context_t *context = (context_t*)context_ptr;
@@ -39,22 +39,6 @@ void compute_single_unweighted_knn_class_shapley(void *context_ptr){
     }
     debug_print("%s", "Exact: Shapley Values done :)\n");
 }
-
-// void setup(
-//         char* filename_train_features,
-//         char* filename_train_labels,
-//         double* x_trn,
-//         double* y_trn,
-//         double* x_tst,
-//         double* y_tst,
-//         size_t size_train_features,
-//         size_t* size_x_trn,
-//         size_t* size_y_trn,
-//         size_t* size_x_tst,
-//         size_t* size_y_tsize_st,
-//         size_t feature_len ) {
-// }
-
 
 uint64_t run_shapley(void *context) {  
     context_t *ctx = (context_t *)context;
@@ -104,7 +88,7 @@ uint64_t run_shapley(void *context) {
     uint64_t start_timer, end_timer;
 
     start_timer = start_tsc();
-    get_true_KNN(ctx);
+    get_true_exact_KNN(ctx);
 
     #ifdef DEBUG
     // print x_tst_knn_gt array
@@ -135,4 +119,33 @@ uint64_t run_shapley(void *context) {
     #endif
 
     return end_timer;
+}
+
+void opt1_compute_single_unweighted_knn_class_shapley(void *context_ptr){
+    context_t *context = (context_t*)context_ptr;
+    debug_print("%s", "\nStart Shapley computation:\n");
+    for(int j=0; j<context->size_x_tst;j++){
+        // debug_print("  iteration: j=%d\n", j);
+        // Line 3 of Algo 1
+        int offset = context->x_test_knn_gt[j*context->size_x_trn+context->size_x_trn-1];
+        double tmp = (context->y_trn[offset] == context->y_tst[j]) ? 1.0 : 0.0;
+        context->sp_gt[j*context->size_x_trn + offset] = tmp / context->size_x_trn; 
+
+        for (int i=context->size_x_trn-2; i>-1; i--) {
+            // debug_print("    i=%d\n", i);
+            int index_j_i = j*context->size_x_trn+i;
+
+            double s_j_alpha_i_plus_1 = context->sp_gt[j*context->size_x_trn + context->x_test_knn_gt[index_j_i+1]];
+            double difference = (double)(context->y_trn[context->x_test_knn_gt[index_j_i]] == context->y_tst[j]) - 
+                                        (double)(context->y_trn[context->x_test_knn_gt[index_j_i+1]] == context->y_tst[j]);
+            double min_K_i = context->K < i+1 ? context->K : i+1;
+
+            // debug_print("      s_j=%f\n", s_j_alpha_i_plus_1);
+            // debug_print("      diff=%f (%f,%f), (%f,%f)\n", difference, y_trn[x_tst_knn_gt[index_j_i]], y_tst[j], y_trn[x_tst_knn_gt[index_j_i+1]], y_tst[j]);
+            // debug_print("      min_=%f\n", min_K_i);
+
+            context->sp_gt[j*context->size_x_trn + context->x_test_knn_gt[index_j_i]] = s_j_alpha_i_plus_1 + (difference / context->K) * (min_K_i / (i+1));
+        }
+    }
+    debug_print("%s", "Exact: Shapley Values done :)\n");
 }

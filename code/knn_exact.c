@@ -33,7 +33,7 @@ Expected Behavior:
 - result is a 2D array of size_x_tst * size_x_trn
 - result[i][j] is the proximity rank of the jth train point regarding the ith test point.
 */
-void get_true_KNN(void *context_ptr) {
+void get_true_exact_KNN(void *context_ptr) {
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
@@ -61,7 +61,7 @@ void get_true_KNN(void *context_ptr) {
         }
 
         // Sanity check in order to compare with python
-        debug_print("%s", "get_true_KNN: dist_gt:\n");
+        debug_print("%s", "get_true_exact_KNN: dist_gt:\n");
             for (int j = 0; j<10;j++) {
                 debug_print("%f, ", dist_gt[j]);
             }
@@ -80,7 +80,7 @@ void get_true_KNN(void *context_ptr) {
 
 
         // Sanity check in order to compare with python
-        debug_print("%s", "get_true_KNN: x_test_knn_gt:\n");
+        debug_print("%s", "get_true_exact_KNN: x_test_knn_gt:\n");
         for (int j = 0; j<context->size_x_trn; j++) {
             debug_print("%f, ", context->x_test_knn_gt[i_tst*context->size_x_trn + j]);
         }
@@ -92,7 +92,7 @@ void get_true_KNN(void *context_ptr) {
 }
 
 
-uint64_t knn_base(void *context_ptr) {
+uint64_t knn_exact_base(void *context_ptr) {
     uint64_t start_timer, end_timer;
     start_timer = start_tsc();
 
@@ -145,7 +145,7 @@ uint64_t knn_base(void *context_ptr) {
     return end_timer;
 }
 
-uint64_t knn_opt1(void *context_ptr) {
+uint64_t knn__exact_opt1(void *context_ptr) {
     uint64_t start_timer, end_timer;
     start_timer = start_tsc();
 
@@ -153,10 +153,4 @@ uint64_t knn_opt1(void *context_ptr) {
 
     end_timer = stop_tsc(start_timer);
     return end_timer;
-}
-
-
-
-void opt7_knn(void *context_ptr) {
-    return;
 }
