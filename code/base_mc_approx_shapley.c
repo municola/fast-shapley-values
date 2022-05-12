@@ -34,8 +34,6 @@ void fisher_yates_shuffle(int* seq, int n) {
 }
 
 void compute_shapley_using_improved_mc_approach(void *context) {
-
-    return;
     context_t *ctx = (context_t *)context; 
     int* pi = (int*)calloc(ctx->size_x_trn, sizeof(int));
     double* phi = (double*)calloc(ctx->size_x_trn * ctx->T, sizeof(double));
