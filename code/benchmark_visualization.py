@@ -185,7 +185,7 @@ main = """
         };
         xhttp.open("GET", "/updates", true);
         xhttp.send();
-    }, 5000);
+    }, 1000);
 
 </script>
 
