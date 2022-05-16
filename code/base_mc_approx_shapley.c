@@ -11,14 +11,6 @@
 #include "benchmark.h"
 #include "knn_approx.h"
 
-// Use "make debug" to enable debug prints and debug symbols, etc.
-#ifdef DEBUG
-    #define debug_print(fmt, ...) \
-                do { fprintf(stderr, fmt, __VA_ARGS__); } while (0)
-#else
-    #define debug_print(fmt, ...) 
-#endif
-
 // randomly permutes an array [1, ..., n] in place
 void fisher_yates_shuffle(int* seq, int n) {
     for (int i = 0; i < n; i++) {
