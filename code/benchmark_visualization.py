@@ -185,7 +185,7 @@ main = """
 <span class="btn btn-secondary" onclick="javascript:do_performance_plots()">Performance plots</span><br><br>
 <h5>Latest benchmarks</h5>
 <div class="row">
-<div class="col-6">
+<div class="col-8">
 <table class="table table-striped">
   <thead>
     <tr>
@@ -202,7 +202,7 @@ main = """
 </table>
 </div>
 
-<div class="col-6" id="plotwindow"></div>
+<div class="col-4" id="plotwindow"></div>
 </div>
 """
 
