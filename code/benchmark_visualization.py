@@ -37,8 +37,7 @@ def read_runfiles():
                 "num_runs" : rf["num_runs"],
                 "implementation" : rf["implementation"],
                 "turbo_boost_disabled" : rf["turbo_boost_disabled"],
-                "knn_correct" : rf["knn_correct"],
-                "shapley_correct" : rf["shapley_correct"]
+                "implementation_correct" : rf["implementation_correct"]
             }
 
 
