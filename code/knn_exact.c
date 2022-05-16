@@ -87,16 +87,11 @@ void get_true_exact_KNN(void *context_ptr) {
         debug_print("%s", "\n");
         
     }
-    // debug_print("Get KNN done :)\n", );
-    debug_print("%s", "Exact: Got KNN done :)\n");
+
 }
 
 
-uint64_t knn_exact_base(void *context_ptr) {
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
-
-
+void knn_exact_base(void *context_ptr) {
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
@@ -135,30 +130,20 @@ uint64_t knn_exact_base(void *context_ptr) {
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
-    
-    // debug_print("Get KNN done :)\n", );
-    debug_print("%s", "Exact: Got KNN done :)\n");
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
+
 }
 
-uint64_t knn__exact_opt(void *context_ptr) {
+void knn__exact_opt(void *context_ptr) {
     /*opt5: 8 TODO */
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
     context_t *context = (context_t *) context_ptr;
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
+    knn_exact_base(context_ptr);
 }
 
 
 
 
-uint64_t knn__exact_opt4(void *context_ptr) {
+void knn__exact_opt4(void *context_ptr) {
     /*opt4: 8 Accumulator */
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
-
 
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
@@ -229,18 +214,11 @@ uint64_t knn__exact_opt4(void *context_ptr) {
     
     // debug_print("Get KNN done :)\n", );
     debug_print("%s", "Exact: Got KNN done :)\n");
-
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
 }
 
 
-uint64_t knn__exact_opt3(void *context_ptr) {
+void knn__exact_opt3(void *context_ptr) {
     /*opt3: 8 Accumulator + accumulated sums */
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
-
-
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
@@ -323,23 +301,14 @@ uint64_t knn__exact_opt3(void *context_ptr) {
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
-    
-    // debug_print("Get KNN done :)\n", );
-    debug_print("%s", "Exact: Got KNN done :)\n");
-
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
 }
 
 
 
 
 
-uint64_t knn__exact_opt2(void *context_ptr) {
+void knn__exact_opt2(void *context_ptr) {
     /* opt2: 4 Accumulators + accumulated sums*/
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
-
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
 
@@ -394,16 +363,11 @@ uint64_t knn__exact_opt2(void *context_ptr) {
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
 }
 
 
-uint64_t knn__exact_opt1(void *context_ptr) {
+void knn__exact_opt1(void *context_ptr) {
     /* opt1: 4 Accumulators */
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
-
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     // Loop through each test point
@@ -449,8 +413,6 @@ uint64_t knn__exact_opt1(void *context_ptr) {
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
 }
 
 

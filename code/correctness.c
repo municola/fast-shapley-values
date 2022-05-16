@@ -49,7 +49,6 @@ bool exact_correct(run_variables_t *run_variables, void *context) {
     
     compute_single_unweighted_knn_class_shapley((void*)test_ctx2);
 
-    printf("correctness ehloo\n");
     double error_knn = nrm_sqr_diff((double *)ctx->x_test_knn_gt, (double *)test_ctx2->x_test_knn_gt, ctx->input_size*ctx->input_size);
     debug_print("KNN Correctness: Error < EPS: %f < %f", error_knn, EPS);
 
