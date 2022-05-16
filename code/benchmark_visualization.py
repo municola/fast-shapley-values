@@ -36,10 +36,14 @@ def read_runfiles():
 
             rf["median_cycles"] = median_cycles
 
+            # Set label = filename, if not manually named
+            if not "label" in rf.keys():
+                rf["label"] = f
+
             # Todo: Determine median / best, etc. here!
             stripped = {
                 "name" : f,
-                "label" : (rf["label"] if "label" in rf.keys() else f),
+                "label" : rf["label"],
                 "input_sizes" : rf["input_sizes"],
                 "median_cycles" : rf["median_cycles"],
                 "num_runs" : rf["num_runs"],
@@ -273,7 +277,7 @@ class GETHandler(BaseHTTPRequestHandler):
                 x = runfile["input_sizes"]
                 y = runfile["median_cycles"]
             
-                pyplot.plot(x, y, marker='^', label=i)
+                pyplot.plot(x, y, marker='^', label=runfile["label"])
             
             ax.legend()
             ax.set_xlabel("n (input size)")
@@ -302,7 +306,7 @@ class GETHandler(BaseHTTPRequestHandler):
                     cycles = median(runfile["benchmarks"][str(input_size)])
                     y.append(flops/cycles)
             
-                pyplot.plot(x, y, marker='^', label=i)
+                pyplot.plot(x, y, marker='^', label=runfile["label"])
             
             ax.legend()
             ax.set_xlabel("n (input size)")
