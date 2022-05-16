@@ -136,7 +136,7 @@ void knn_exact_base(void *context_ptr) {
 void knn__exact_opt(void *context_ptr) {
     /*opt5: 8 TODO */
     context_t *context = (context_t *) context_ptr;
-    knn_exact_base(context_ptr);
+    knn__exact_opt4(context_ptr);
 }
 
 
