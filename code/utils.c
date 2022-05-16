@@ -101,7 +101,7 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
     }
 
     // Correctness tests
-    int test_input_size = 128;
+    int test_input_size = 19*8;
     run_variables_t test_vars = {
         .number_of_runs = 1,
         .number_of_input_sizes = 1,
