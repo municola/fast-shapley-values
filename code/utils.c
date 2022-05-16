@@ -116,8 +116,7 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
     init_context(&test_ctxt, test_input_size);
     
     // Actual correctness tests
-    bool implementation_correct = true;
-    // bool implementation_correct = test_vars.correctness_check_func((void*)&test_vars, (void*)&test_ctxt);
+    bool implementation_correct = test_vars.correctness_check_func((void*)&test_vars, (void*)&test_ctxt);
     #ifdef DEBUG
     if(!implementation_correct){
         printf("Correctness tests failed\n");

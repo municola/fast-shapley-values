@@ -88,7 +88,7 @@ uint64_t run_shapley(void *context) {
     uint64_t start_timer, end_timer;
 
     start_timer = start_tsc();
-    get_true_exact_KNN(ctx);
+    knn__exact_opt1(ctx);
 
     #ifdef DEBUG
     // print x_tst_knn_gt array
@@ -105,6 +105,7 @@ uint64_t run_shapley(void *context) {
     compute_single_unweighted_knn_class_shapley(ctx);
     end_timer = stop_tsc(start_timer);
 
+    printf("Cycles: %lu\n", end_timer);
 
     #ifdef DEBUG
     // print x_tst_knn_gt array
