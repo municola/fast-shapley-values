@@ -29,11 +29,19 @@ def read_runfiles():
 
             runfiles_paths.append(f)                
 
+            # Compute median cycles for each runfile
+            median_cycles = []
+            for input_size in rf["input_sizes"]:
+                    median_cycles.append(median(rf["benchmarks"][str(input_size)]))
+
+            rf["median_cycles"] = median_cycles
+
             # Todo: Determine median / best, etc. here!
             stripped = {
                 "name" : f,
                 "label" : (rf["label"] if "label" in rf.keys() else f),
                 "input_sizes" : rf["input_sizes"],
+                "median_cycles" : rf["median_cycles"],
                 "num_runs" : rf["num_runs"],
                 "implementation" : rf["implementation"],
                 "turbo_boost_disabled" : rf["turbo_boost_disabled"],
@@ -117,7 +125,7 @@ main = """
         
         var impl_badge = '<span class="badge bg-secondary">' + runfile["implementation"] + '</span>&nbsp;&nbsp;';
         
-        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["label"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["label"] + '&nbsp;&nbsp;' + impl_badge + boost_badge + new_badge + '</td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["num_runs"] + '</td></tr>';
+        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["label"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["label"] + '&nbsp;&nbsp;' + impl_badge + boost_badge + new_badge + '</td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["median_cycles"]  + '</td><td>' + runfile["num_runs"] + '</td></tr>';
     }
 
     function do_runtime_plots() {
@@ -185,6 +193,7 @@ main = """
       <th scope="col"><input class="form-check-input" type="checkbox" value=""></th>
       <th scope="col">Name</th>
       <th scope="col">Input sizes</th>
+      <th scope="col">Median of cycles (runtime)</th>
       <th scope="col">Number of runs</th>
     </tr>
   </thead>
@@ -262,9 +271,7 @@ class GETHandler(BaseHTTPRequestHandler):
             for i in ids:
                 runfile = runfiles[i]
                 x = runfile["input_sizes"]
-                y = []
-                for input_size in x:
-                    y.append(median(runfile["benchmarks"][str(input_size)]))
+                y = runfile["median_cycles"]
             
                 pyplot.plot(x, y, marker='^', label=i)
             
