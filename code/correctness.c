@@ -34,7 +34,6 @@ bool exact_correct(run_variables_t *run_variables, void *context) {
 
     debug_print("Input size: %d\n", ctx->input_size);
 
-
     // DO NOT TOUCH, base implementations for correctness testing
     init_context(ctx, ctx->input_size);
     get_true_exact_KNN(context);
@@ -42,9 +41,13 @@ bool exact_correct(run_variables_t *run_variables, void *context) {
 
     init_context(test_ctx2, ctx->input_size);
     // replace both functions with whatever you want to test
-    knn__exact_opt1((void*)test_ctx2);
+
+    // knn_exact_base((void*)test_ctx2);
+    knn__exact_opt((void*)test_ctx2);
+
+   
+    
     compute_single_unweighted_knn_class_shapley((void*)test_ctx2);
-    // knn__exact_opt1((void*)test_ctx2);
 
     printf("correctness ehloo\n");
     double error_knn = nrm_sqr_diff((double *)ctx->x_test_knn_gt, (double *)test_ctx2->x_test_knn_gt, ctx->input_size*ctx->input_size);

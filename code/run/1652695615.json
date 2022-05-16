@@ -1,0 +1,48 @@
+{
+    "label": "opt4",
+    "git_status" : "modified",
+    "git_branch" : "master",
+    "compiler" : "gcc",
+    "compiler_flags" : "-Wall -lm -O3 ",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "turbo_boost_disabled" : true,
+    "arguments" : "-i 128 -i 256 -i 512 -i 1024 ",
+    "implementation" : "exact",
+    "implementation_correct" : true,
+    "num_runs" : 5,
+    "num_input_sizes" : 4,
+    "input_sizes" : [128, 256, 512, 1024],
+
+
+    "benchmarks" : {
+        "128" : [
+            55299586,
+            44410742,
+            43798158,
+            40768618,
+            41774528
+        ],
+        "256" : [
+            162720590,
+            155923850,
+            157955952,
+            157268294,
+            158155358
+        ],
+        "512" : [
+            740995652,
+            665131872,
+            626809918,
+            659853756,
+            764412718
+        ],
+        "1024" : [
+            2931077450,
+            2839571868,
+            2628765020,
+            2522625188,
+            2695788270
+        ]
+    }
+}
