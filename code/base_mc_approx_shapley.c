@@ -112,7 +112,7 @@ uint64_t run_approx_shapley(void *context) {
     debug_print("%s", "X_tst_dist_gt_array:\n");
     for (int i = 0; i<5;i++) {
         for (int j = 0; j<10;j++) {
-            debug_print("%f, ", ctx->x_test_knn_gt[i*ctx->size_x_trn+j]);
+            debug_print("%d, ", ctx->x_test_knn_gt[i*ctx->size_x_trn+j]);
         }
         debug_print("%s", "\n");
     }

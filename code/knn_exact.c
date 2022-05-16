@@ -82,7 +82,7 @@ void get_true_exact_KNN(void *context_ptr) {
         // Sanity check in order to compare with python
         debug_print("%s", "get_true_exact_KNN: x_test_knn_gt:\n");
         for (int j = 0; j<context->size_x_trn; j++) {
-            debug_print("%f, ", context->x_test_knn_gt[i_tst*context->size_x_trn + j]);
+            debug_print("%d, ", context->x_test_knn_gt[i_tst*context->size_x_trn + j]);
         }
         debug_print("%s", "\n");
         
