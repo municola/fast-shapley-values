@@ -77,6 +77,19 @@ void parse_cmd_options(int argc, char **argv, run_variables_t *run_variables){
             continue;
         }
 
+        if(strcmp(argv[i], "--label") == 0){
+            if(argc <= i+1){
+                printf("Error: Missing label\n");
+                exit(1);
+            }
+
+            run_variables->label = argv[i+1];
+
+            i += 2;
+            continue;
+        }
+    
+
         printf("Error: Unknown argument '%s'\n", argv[i]);
         exit(1);
     }
@@ -126,6 +139,12 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
 
     // Write collected info to the runfile:
     char tmpbuf[512]; 
+
+    // Label, if supplied via args
+    if(run_variables->label != NULL){
+        add_run_info(run_variables->runfile, "label", run_variables->label);
+    }
+
     add_run_info(run_variables->runfile, "git_status", git_dirty);
     add_run_info(run_variables->runfile, "git_branch", GITBRANCH);
     add_run_info(run_variables->runfile, "compiler", CC);

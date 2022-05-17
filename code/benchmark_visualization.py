@@ -102,7 +102,7 @@ header = """
 main = """
 <script>
     var to_plot = [];
-    var plot_mode = 'performance';
+    var plot_mode = 'runtime';
 
     function toggle_plot(name){
         if(to_plot.includes(name)){

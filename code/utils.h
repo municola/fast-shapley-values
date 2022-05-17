@@ -24,6 +24,7 @@ typedef enum COLOR COLOR;
 
 typedef struct run_variables {
     bool quiet;
+    char *label;
     char *implementation;
 
     /* void* is actually context_t* */

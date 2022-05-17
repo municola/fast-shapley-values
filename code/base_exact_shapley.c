@@ -89,7 +89,7 @@ uint64_t run_shapley(void *context) {
 
 
     // knn_exact_base(ctx);
-    knn__exact_opt(ctx);
+    knn__exact_opt1(ctx);
 
 
     #ifdef DEBUG
