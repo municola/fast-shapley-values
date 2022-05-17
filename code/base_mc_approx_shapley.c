@@ -11,14 +11,6 @@
 #include "benchmark.h"
 #include "knn_approx.h"
 
-// Use "make debug" to enable debug prints and debug symbols, etc.
-#ifdef DEBUG
-    #define debug_print(fmt, ...) \
-                do { fprintf(stderr, fmt, __VA_ARGS__); } while (0)
-#else
-    #define debug_print(fmt, ...) 
-#endif
-
 // randomly permutes an array [1, ..., n] in place
 void fisher_yates_shuffle(int* seq, int n) {
     for (int i = 0; i < n; i++) {
@@ -137,7 +129,7 @@ uint64_t run_approx_shapley(void *context) {
     debug_print("%s", "X_tst_dist_gt_array:\n");
     for (int i = 0; i<5;i++) {
         for (int j = 0; j<10;j++) {
-            debug_print("%f, ", ctx->x_test_knn_gt[i*ctx->size_x_trn+j]);
+            debug_print("%d, ", ctx->x_test_knn_gt[i*ctx->size_x_trn+j]);
         }
         debug_print("%s", "\n");
     }

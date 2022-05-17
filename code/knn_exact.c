@@ -82,21 +82,16 @@ void get_true_exact_KNN(void *context_ptr) {
         // Sanity check in order to compare with python
         debug_print("%s", "get_true_exact_KNN: x_test_knn_gt:\n");
         for (int j = 0; j<context->size_x_trn; j++) {
-            debug_print("%f, ", context->x_test_knn_gt[i_tst*context->size_x_trn + j]);
+            debug_print("%d, ", context->x_test_knn_gt[i_tst*context->size_x_trn + j]);
         }
         debug_print("%s", "\n");
         
     }
-    // debug_print("Get KNN done :)\n", );
-    debug_print("%s", "Exact: Got KNN done :)\n");
+
 }
 
 
-uint64_t knn_exact_base(void *context_ptr) {
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
-
-
+void knn_exact_base(void *context_ptr) {
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
@@ -135,31 +130,64 @@ uint64_t knn_exact_base(void *context_ptr) {
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
-    
-    // debug_print("Get KNN done :)\n", );
-    debug_print("%s", "Exact: Got KNN done :)\n");
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
+
 }
 
-uint64_t knn__exact_opt(void *context_ptr) {
-    /*opt5: 8 TODO */
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
+
+
+void knn__exact_opt5(void *context_ptr) {
+    /* opt5: based on opt1: 4 Accumulators */
     context_t *context = (context_t *) context_ptr;
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
+    double curr_dist;
+    // Loop through each test point
+    for (int i_tst=0; i_tst<context->size_x_tst; i_tst++) {
+        // Loop through each train point
+        for (int i_trn=0; i_trn<context->size_x_trn; i_trn++){
+            // calculate the distance between the two points, just pythagoras...
+            curr_dist = 0;
+            for (int i_feature=0; i_feature<context->feature_len; i_feature+=4) {
+                double a1 = context->x_trn[i_trn*context->feature_len + i_feature];
+                double b1 = context->x_tst[i_tst*context->feature_len + i_feature];
+                double a2 = context->x_trn[i_trn*context->feature_len + i_feature+1];
+                double b2 = context->x_tst[i_tst*context->feature_len + i_feature+1];
+                double a3 = context->x_trn[i_trn*context->feature_len + i_feature+2];
+                double b3 = context->x_tst[i_tst*context->feature_len + i_feature+2];
+                double a4 = context->x_trn[i_trn*context->feature_len + i_feature+3];
+                double b4 = context->x_tst[i_tst*context->feature_len + i_feature+3];
+                
+
+                double ab1 = a1-b1;
+                double ab2 = a2-b2;
+                double ab3 = a3-b3;
+                double ab4 = a4-b4;
+                
+                double ab1_2 = ab1*ab1;
+                double ab2_2 = ab2*ab2;
+                double ab3_2 = ab3*ab3;
+                double ab4_2 = ab4*ab4;
+
+                curr_dist += ab1_2 + ab2_2 + ab3_2 + ab4_2;
+                
+            }
+            curr_dist = sqrt(curr_dist);
+
+            context->dist_gt[i_trn] = curr_dist;
+        }
+        // get the indexes that would sort the array
+        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
+        for (int i=0; i<context->size_x_trn; i++) {
+            sorted_indexes[i] = i;
+        }
+
+        qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
+        memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
+    }
 }
 
 
 
-
-uint64_t knn__exact_opt4(void *context_ptr) {
+void knn__exact_opt4(void *context_ptr) {
     /*opt4: 8 Accumulator */
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
-
-
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
@@ -226,21 +254,11 @@ uint64_t knn__exact_opt4(void *context_ptr) {
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
-    
-    // debug_print("Get KNN done :)\n", );
-    debug_print("%s", "Exact: Got KNN done :)\n");
-
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
 }
 
 
-uint64_t knn__exact_opt3(void *context_ptr) {
+void knn__exact_opt3(void *context_ptr) {
     /*opt3: 8 Accumulator + accumulated sums */
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
-
-
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
@@ -323,23 +341,14 @@ uint64_t knn__exact_opt3(void *context_ptr) {
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
-    
-    // debug_print("Get KNN done :)\n", );
-    debug_print("%s", "Exact: Got KNN done :)\n");
-
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
 }
 
 
 
 
 
-uint64_t knn__exact_opt2(void *context_ptr) {
+void knn__exact_opt2(void *context_ptr) {
     /* opt2: 4 Accumulators + accumulated sums*/
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
-
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
 
@@ -394,16 +403,12 @@ uint64_t knn__exact_opt2(void *context_ptr) {
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
 }
 
 
-uint64_t knn__exact_opt1(void *context_ptr) {
-    /* opt1: 4 Accumulators */
-    uint64_t start_timer, end_timer;
-    start_timer = start_tsc();
 
+void knn__exact_opt1(void *context_ptr) {
+    /* opt1: 4 Accumulators */
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     // Loop through each test point
@@ -449,8 +454,6 @@ uint64_t knn__exact_opt1(void *context_ptr) {
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
-    end_timer = stop_tsc(start_timer);
-    return end_timer;
 }
 
 

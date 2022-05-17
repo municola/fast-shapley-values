@@ -19,4 +19,4 @@ project: $(FILES)
 	$(CC) $(CFLAGS) -DCC='"$(CC)"' -DCFLAGS='"$(CFLAGS)"' -DGITREV='"$(GITREV)"' -DGITBRANCH='"$(GITBRANCH)"' -DGITSTATUS='"$(GITSTATUS)"' -o shapley_values $(CFILES) -lm
 
 debug: $(FILES) 
-	$(CC) -pg -g -DCC='"$(CC)"' -DCFLAGS='"-pg -g"' -DGITREV='"$(GITREV)"' -DGITBRANCH='"$(GITBRANCH)"' -DGITSTATUS='"$(GITSTATUS)"' -DDEBUG -o shapley_values $(CFILES) -lm
+	$(CC) -Wall -pg -g -DCC='"$(CC)"' -DCFLAGS='"-pg -g"' -DGITREV='"$(GITREV)"' -DGITBRANCH='"$(GITBRANCH)"' -DGITSTATUS='"$(GITSTATUS)"' -DDEBUG -o shapley_values $(CFILES) -lm

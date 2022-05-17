@@ -13,6 +13,7 @@
 // Public vars
 run_variables_t run_variables = {
     .quiet = false,
+    .label = NULL,
     .implementation = "exact",
     .number_of_runs = 5,
     .number_of_input_sizes = 0,
