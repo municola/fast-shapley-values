@@ -40,7 +40,7 @@ void init_context(context_t *ctx, int input_size){
     ctx->size_x_trn = input_size / 2;
     ctx->size_y_trn = input_size / 2 ;
     
-    ctx->T = 1;
+    ctx->T = 1000;
     ctx->K = 1;
     
 
