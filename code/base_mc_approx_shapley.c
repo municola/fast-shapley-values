@@ -14,7 +14,7 @@
 // randomly permutes an array [1, ..., n] in place
 void fisher_yates_shuffle(int* seq, int n) {
     for (int i = 0; i < n; i++) {
-        seq[i] = i+1;
+        seq[i] = i;
     }
 
     for (int i = n-1; i>=0; i--) {
@@ -26,9 +26,14 @@ void fisher_yates_shuffle(int* seq, int n) {
 }
 
 void compute_shapley_using_improved_mc_approach(void *context) {
-    context_t *ctx = (context_t *)context; 
+    context_t *ctx = (context_t *)context;
+
     int* pi = (int*)calloc(ctx->size_x_trn, sizeof(int));
     double* phi = (double*)calloc(ctx->size_x_trn * ctx->T, sizeof(double));
+    
+    debug_print("T is: %d\n", ctx->T);
+    debug_print("size_x_trn is: %d\n", ctx->size_x_trn);
+    debug_print("size_x_tst is: %d\n", ctx->size_x_tst);
 
     // calculate the shapley values for each test point j
     for (int j = 0; j < ctx->size_x_tst; j++) {
@@ -43,9 +48,8 @@ void compute_shapley_using_improved_mc_approach(void *context) {
 
             // for each point in the permutation check if it changes test accuracy
             for (int i = 0; i < ctx->size_x_trn; i++) {
-                
                 // check if pi_i is the new nearest neighbor (only then it changes the test accuracy)
-                if (nn == -1 || ctx->dist_gt[j*ctx->size_x_trn+pi[i]] < ctx->dist_gt[j*ctx->size_x_trn+nn]) {
+                if (nn == -1 || ctx->x_test_knn_gt[j*ctx->size_x_trn+pi[i]] < ctx->x_test_knn_gt[j*ctx->size_x_trn+nn]) {
                     double v_incl_i = (double)(ctx->y_trn[pi[i]] == ctx->y_tst[j]);
                     double v_excl_i = (nn == -1) ? 0.0 : (double)(ctx->y_trn[nn] == ctx->y_tst[j]);
                     phi[t*ctx->size_x_trn+pi[i]] = v_incl_i - v_excl_i;
@@ -55,24 +59,37 @@ void compute_shapley_using_improved_mc_approach(void *context) {
                 }
             }
         }
+        debug_print("j is: %d\n", j);
         for (int i = 0; i < ctx->size_x_trn; i++) {
+            debug_print("i is: %d, ", i);
             ctx->sp_gt[j*ctx->size_x_trn+i] = 0;
             for (int t = 0; t < ctx->T; t++) {
                 ctx->sp_gt[j*ctx->size_x_trn+i] += phi[t*ctx->size_x_trn+i];
+                debug_print("phi: %f", phi[t*ctx->size_x_trn+i]);
             }
             ctx->sp_gt[j*ctx->size_x_trn+i] /= (double)(ctx->T);
+            debug_print("SV: %f\n", ctx->sp_gt[j*ctx->size_x_trn+i]);
         }
+    }
+
+    debug_print("%s", "\n");
+    debug_print("%s", "Shapley Values:\n");
+    for (int i = 0; i<5;i++) {
+        for (int j = 0; j<10;j++) {
+            debug_print("%f, ", ctx->sp_gt[i*ctx->size_x_trn+j]);
+        }
+        debug_print("%s", "\n");
     }
 
     free(phi);
     free(pi);
 
     debug_print("%s", "Approx: Got Shapley done :)\n");
+    return;
 }
 
 uint64_t run_approx_shapley(void *context) {
     context_t *ctx = (context_t *)context;
-
 
     #ifdef DEBUG
     //Sanity check, to make sure that C and Python are doing the same thing
@@ -122,7 +139,6 @@ uint64_t run_approx_shapley(void *context) {
     compute_shapley_using_improved_mc_approach(ctx);
     end_timer = stop_tsc(start_timer);
 
-    #ifdef DEBUG
     // print sp_gt array
     debug_print("%s", "\n");
     debug_print("%s", "Shapley Values:\n");
@@ -132,7 +148,6 @@ uint64_t run_approx_shapley(void *context) {
         }
         debug_print("%s", "\n");
     }
-    #endif
 
     return end_timer;
 }

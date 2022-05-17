@@ -18,7 +18,7 @@ typedef struct context {
     size_t size_y_tst;
     size_t feature_len;
     size_t num_test_samples;
-    double T;
+    int T;
     double K;
 } context_t;
 

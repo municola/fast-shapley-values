@@ -90,7 +90,7 @@ uint64_t run_shapley(void *context) {
     start_timer = start_tsc();
 
     // knn_exact_base(ctx);
-    knn__exact_opt(ctx);
+    knn__exact_opt1(ctx);
 
     end_timer = stop_tsc(start_timer);
 
