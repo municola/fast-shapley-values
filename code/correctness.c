@@ -52,7 +52,7 @@ bool exact_correct(run_variables_t *run_variables, void *context) {
     // replace both functions with whatever you want to test
 
     // knn_exact_base((void*)test_ctx2);
-    knn__exact_opt((void*)test_ctx2);
+    knn__exact_opt1((void*)test_ctx2);
 
     compute_single_unweighted_knn_class_shapley((void*)test_ctx2);
 
