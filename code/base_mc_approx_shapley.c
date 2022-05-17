@@ -59,16 +59,12 @@ void compute_shapley_using_improved_mc_approach(void *context) {
                 }
             }
         }
-        debug_print("j is: %d\n", j);
         for (int i = 0; i < ctx->size_x_trn; i++) {
-            debug_print("i is: %d, ", i);
             ctx->sp_gt[j*ctx->size_x_trn+i] = 0;
             for (int t = 0; t < ctx->T; t++) {
                 ctx->sp_gt[j*ctx->size_x_trn+i] += phi[t*ctx->size_x_trn+i];
-                debug_print("phi: %f", phi[t*ctx->size_x_trn+i]);
             }
             ctx->sp_gt[j*ctx->size_x_trn+i] /= (double)(ctx->T);
-            debug_print("SV: %f\n", ctx->sp_gt[j*ctx->size_x_trn+i]);
         }
     }
 

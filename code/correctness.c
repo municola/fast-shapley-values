@@ -14,7 +14,7 @@
 double nrm_sqr_diff_double(double *x, double *y, int n) {
     double nrm_sqr = 0.0;
     for(int i = 0; i < n; i++) {
-        debug_print("nrm_sqr_diff_double: %f %f\n", x[i], y[i]);
+        //debug_print("nrm_sqr_diff_double: %f %f\n", x[i], y[i]);
         nrm_sqr += (x[i] - y[i]) * (x[i] - y[i]);
     }
     
@@ -28,7 +28,7 @@ double nrm_sqr_diff_double(double *x, double *y, int n) {
 int nrm_sqr_diff_int(int *x, int *y, int n) {
     int nrm_sqr = 0;
     for(int i = 0; i < n; i++) {
-        debug_print("nrm_sqr_diff_int: %d %d\n", x[i], y[i]);
+        //debug_print("nrm_sqr_diff_int: %d %d\n", x[i], y[i]);
         nrm_sqr += (x[i] - y[i]) * (x[i] - y[i]);
     }
     

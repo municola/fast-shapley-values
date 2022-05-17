@@ -44,12 +44,14 @@ void get_true_approx_KNN(void *context_ptr) {
         }
 
         // Sanity check in order to compare with python
+        /*
         debug_print("%s", "get_true_approx_KNN: dist_gt:\n");
             for (int j = 0; j<10;j++) {
                 debug_print("%f, ", context->dist_gt[j]);
             }
             debug_print("%s", "\n");
 
+        */
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
 
         for (int i=0; i<context->size_x_trn; i++) {
@@ -59,6 +61,7 @@ void get_true_approx_KNN(void *context_ptr) {
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_distances, context->size_x_trn * sizeof(int));
 
+        /*
         debug_print("%s", "Sorted Distances\n");
         for (int j = 0; j<context->size_x_trn;j++) {
             debug_print("%d, ", sorted_distances[j]);
@@ -72,6 +75,7 @@ void get_true_approx_KNN(void *context_ptr) {
             debug_print("%d, ", context->x_test_knn_gt[i_tst*context->size_x_trn + j]);
         }
         debug_print("%s", "\n");
+        */
         
     }
     // debug_print("Get KNN done :)\n", );
