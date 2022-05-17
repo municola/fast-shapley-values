@@ -78,7 +78,7 @@ void get_true_approx_KNN(void *context_ptr) {
         */
         
     }
-    // debug_print("Get KNN done :)\n", );
+    
     debug_print("%s", "Approx: Got KNN done :)\n");
 }
 

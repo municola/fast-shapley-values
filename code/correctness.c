@@ -68,8 +68,8 @@ bool exact_correct(run_variables_t *run_variables, void *context) {
 
 bool approx_correct(run_variables_t *run_variables, void *context) {
     context_t *ctx = (context_t *)context;
-    context_t test_context2 = *ctx;
-    context_t *test_ctx2 = &test_context2;
+    context_t *test_ctx2 = calloc(sizeof(context_t), 1);
+    test_ctx2->input_size = ctx->input_size;
 
     debug_print("Input size: %d\n", ctx->input_size);
 
@@ -81,7 +81,7 @@ bool approx_correct(run_variables_t *run_variables, void *context) {
     init_context(test_ctx2, ctx->input_size);
     // replace with whatever function of interest
     get_true_approx_KNN((void*)test_ctx2);
-    compute_shapley_using_improved_mc_approach(context);
+    compute_shapley_using_improved_mc_approach((void*)test_ctx2);
 
     double error_knn = nrm_sqr_diff_int(ctx->x_test_knn_gt, test_ctx2->x_test_knn_gt, ctx->size_x_trn*ctx->size_x_tst);
     debug_print("KNN Correctness: Error < EPS: %f < %f", error_knn, EPS);

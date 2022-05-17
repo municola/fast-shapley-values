@@ -55,10 +55,11 @@ void compute_shapley_using_improved_mc_approach(void *context) {
                     phi[t*ctx->size_x_trn+pi[i]] = v_incl_i - v_excl_i;
                     nn = pi[i];
                 } else {
-                    phi[t*ctx->size_x_trn+pi[i]] = phi[t*ctx->size_x_trn+pi[i-1]];
+                    phi[t*ctx->size_x_trn+pi[i]] = 0;
                 }
             }
         }
+    
         for (int i = 0; i < ctx->size_x_trn; i++) {
             ctx->sp_gt[j*ctx->size_x_trn+i] = 0;
             for (int t = 0; t < ctx->T; t++) {
@@ -75,6 +76,14 @@ void compute_shapley_using_improved_mc_approach(void *context) {
             debug_print("%f, ", ctx->sp_gt[i*ctx->size_x_trn+j]);
         }
         debug_print("%s", "\n");
+    }
+
+    for (int i = 0; i  < ctx->size_x_trn; i++) {
+        double sum = 0;
+        for (int j = 0; j < ctx->size_x_tst; j++) {
+            sum += ctx->sp_gt[j*ctx->size_x_trn+i];
+        }
+        debug_print("SV of training point %d is %f\n", i, sum / ctx->size_x_tst);
     }
 
     free(phi);
