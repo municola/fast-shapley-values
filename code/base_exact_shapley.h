@@ -7,4 +7,4 @@
 uint64_t run_shapley(void *context);
 void get_true_exact_KNN(void *context);
 void compute_single_unweighted_knn_class_shapley(void *context);
-void opt1_compute_single_unweighted_knn_class_shapley(void *context);
+void current_opt_compute_single_unweighted_knn_class_shapley(void *context);
