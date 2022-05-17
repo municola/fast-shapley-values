@@ -54,7 +54,7 @@ bool exact_correct(run_variables_t *run_variables, void *context) {
     // knn_exact_base((void*)test_ctx2);
     knn__exact_opt1((void*)test_ctx2);
 
-    compute_single_unweighted_knn_class_shapley((void*)test_ctx2);
+    current_opt_compute_single_unweighted_knn_class_shapley((void*)test_ctx2);
 
     double error_knn = nrm_sqr_diff_int(ctx->x_test_knn_gt, test_ctx2->x_test_knn_gt, ctx->size_x_trn*ctx->size_x_tst);
     debug_print("KNN Correctness: Error < EPS: %f < %f", error_knn, EPS);
