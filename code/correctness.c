@@ -75,7 +75,7 @@ bool approx_correct(run_variables_t *run_variables, void *context) {
     init_context(test_ctx2, ctx->input_size);
     // replace with whatever function of interest
     get_true_approx_KNN((void*)test_ctx2);
-    opt1_compute_shapley_using_improved_mc_approach(context);
+    compute_shapley_using_improved_mc_approach(context);
 
     double error_knn = nrm_sqr_diff((double *)ctx->x_test_knn_gt, (double *)test_ctx2->x_test_knn_gt, ctx->input_size*ctx->input_size);
     debug_print("KNN Correctness: Error < EPS: %f < %f", error_knn, EPS);
