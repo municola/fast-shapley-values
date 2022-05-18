@@ -141,9 +141,66 @@ void knn_exact_base(void *context_ptr) {
 
 
 
+void knn__exact_opt(void *context_ptr) {
+    /* opt7: Blocking + Blocked sqrt*/
+    context_t *context = (context_t *) context_ptr;
+    double curr_dist;
+    int B = 8;
+    int train_length = context->size_x_trn;
+    int test_length = context->size_x_tst;
+    int f_length = context->feature_len;
+
+    assert(train_length % B == 0);
+    assert(test_length % B == 0);
+    assert(f_length % B == 0);
+
+    for (int i=0; i<test_length; i+=B) {
+        for (int j=0; j<train_length; j+=B) {
+
+            for (int k=0; k<f_length; k+=B) {
+                /* B x B Block Calculation */
+                for (int i1=i; i1<i+B; i1++){
+                    for (int j1=j; j1<j+B; j1++){
+                        for (int k1=k; k1<k+B; k1++){
+                            // c[i1*test_length + j1] += (a[i1*test_length + k1]-b[j1*train_length+k1])^2
+                            double a = context->x_tst[i1*f_length + k1];
+                            double b = context->x_trn[j1*f_length + k1];
+                            double ab_2 = pow((a-b),2);
+                            context->dist_gt[i1*train_length + j1] += ab_2;
+                        }
+                    }
+                }
+            }
+
+            // Square root
+            for (int i2=i; i2<i+B; i2++) {
+                for (int j2=j; j2<j+B; j2++) {
+                    double t = sqrt(context->dist_gt[i2*train_length + j2]);
+                    context->dist_gt[i2*train_length + j2] = t;
+                }
+            }
+            
+        }
+    }
+
+    // Sorting
+    for (int i_tst=0; i_tst<test_length; i_tst++) {
+        // get the indexes that would sort the array
+        dist_gt_row = &context->dist_gt[i_tst*train_length];
+        int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
+        for (int i=0; i<train_length; i++) {
+            sorted_indexes[i] = i;
+        }
+        qsort(sorted_indexes, train_length, sizeof(int), compar_block);
+        memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
+    }
+}
+
+
+
+
 void knn__exact_opt6(void *context_ptr) {
     /* opt6: Blocking */
-    /* knn__exact_opt   knn_exact_base */
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     int B = 12;
@@ -191,10 +248,7 @@ void knn__exact_opt6(void *context_ptr) {
         qsort(sorted_indexes, train_length, sizeof(int), compar_block);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
-
 }
-
-
 
 
 void knn__exact_opt5(void *context_ptr) {
