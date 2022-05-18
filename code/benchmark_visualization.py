@@ -185,7 +185,7 @@ main = """
         };
         xhttp.open("GET", "/updates", true);
         xhttp.send();
-    }, 1000);
+    }, 10000);
 
 </script>
 
@@ -279,17 +279,50 @@ class GETHandler(BaseHTTPRequestHandler):
 
             pyplot.clf()
             fig, ax = pyplot.subplots()
+
+
+            max_input_size_equal = True
+            if len(ids) > 0:
+                max_input_size = max(map((lambda x: int(x)), runfiles[ids[0]]["input_sizes"]))
+                #raise Exception("input sizes: " + str(runfiles[ids[0]]["input_sizes"]))
+                max_input_size_no = runfiles[ids[0]]["input_sizes"].index(max_input_size)
+                least_cycles = runfiles[ids[0]]["median_cycles"][max_input_size_no]
+                most_cycles = runfiles[ids[0]]["median_cycles"][max_input_size_no]
+            else:
+                max_input_size = None
+                max_input_size_equal = False
+                
+            
             for i in ids:
                 runfile = runfiles[i]
                 x = runfile["input_sizes"]
                 y = runfile["median_cycles"]
             
+                # Find the max speedup only if the max input size is equal everywhere
+                # (compare the speedup there)
+                if max_input_size != max(runfile["input_sizes"]):
+                    max_input_size_equal = False
+                else:
+                    max_input_size_no = runfile["input_sizes"].index(max_input_size)
+                    least = runfile["median_cycles"][max_input_size_no]
+                    most = runfile["median_cycles"][max_input_size_no]
+
+                    if least < least_cycles:
+                        least_cycles = least
+                    if most > most_cycles:
+                        most_cycles = most
+
                 pyplot.plot(x, y, marker='^', label=runfile["label"])
             
+            if max_input_size_equal:
+                speedup_caption = " (Max. speedup on n={}: {:.2f}x)".format(max_input_size, most_cycles/least_cycles)
+            else:
+                speedup_caption = ""
+
             ax.legend()
             ax.set_xlabel("n (input size)")
             ax.set_ylabel("cycles")
-            pyplot.title("Runtime")
+            pyplot.title("Runtime" + speedup_caption)
 
             tmp_path = tempfile.gettempdir() + "/asl_graph.png"
             pyplot.savefig(tmp_path)
