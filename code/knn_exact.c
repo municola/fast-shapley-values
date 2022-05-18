@@ -76,7 +76,6 @@ void knn_exact_base(void *context_ptr) {
 }
 
 
-
 void knn__exact_opt(void *context_ptr) {
     /* opt8: Blocking(all+sqrt) + Accumulators*/
     context_t *context = (context_t *) context_ptr;
@@ -242,24 +241,39 @@ void knn__exact_opt6(void *context_ptr) {
 
 
 void knn__exact_opt5(void *context_ptr) {
-    /* opt5: based on opt1: 4 Accumulators */
+    /* opt5: based on opt1: 4 Accumulators
+    accumulate sums
+     */
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
+
+    int feature_len = context->feature_len;
+    int size_x_trn = context->size_x_trn;
+    int size_x_tst = context->size_x_tst;
+
+    double *x_trn = context->x_trn;
+    double *x_tst = context->x_tst;
+
+
     // Loop through each test point
-    for (int i_tst=0; i_tst<context->size_x_tst; i_tst++) {
+    for (int i_tst=0; i_tst<size_x_tst; i_tst++) {
         // Loop through each train point
-        for (int i_trn=0; i_trn<context->size_x_trn; i_trn++){
+        for (int i_trn=0; i_trn<size_x_trn; i_trn++){
             // calculate the distance between the two points, just pythagoras...
             curr_dist = 0;
-            for (int i_feature=0; i_feature<context->feature_len; i_feature+=4) {
-                double a1 = context->x_trn[i_trn*context->feature_len + i_feature];
-                double b1 = context->x_tst[i_tst*context->feature_len + i_feature];
-                double a2 = context->x_trn[i_trn*context->feature_len + i_feature+1];
-                double b2 = context->x_tst[i_tst*context->feature_len + i_feature+1];
-                double a3 = context->x_trn[i_trn*context->feature_len + i_feature+2];
-                double b3 = context->x_tst[i_tst*context->feature_len + i_feature+2];
-                double a4 = context->x_trn[i_trn*context->feature_len + i_feature+3];
-                double b4 = context->x_tst[i_tst*context->feature_len + i_feature+3];
+
+            for(int i_feature=0; i_feature<feature_len; i_feature+=4) {
+                int trn_index = i_trn*feature_len + i_feature;
+                int tst_index = i_tst*feature_len + i_feature;
+
+                double a1 = x_trn[trn_index];
+                double b1 = x_tst[tst_index];
+                double a2 = x_trn[trn_index+1];
+                double b2 = x_tst[tst_index+1];
+                double a3 = x_trn[trn_index+2];
+                double b3 = x_tst[tst_index+2];
+                double a4 = x_trn[trn_index+3];
+                double b4 = x_tst[tst_index+3];
                 
                 double ab1 = a1-b1;
                 double ab2 = a2-b2;
@@ -271,8 +285,17 @@ void knn__exact_opt5(void *context_ptr) {
                 double ab3_2 = ab3*ab3;
                 double ab4_2 = ab4*ab4;
 
-                curr_dist += ab1_2 + ab2_2 + ab3_2 + ab4_2;
+
+                //curr_dist += ab1_2 + ab2_2 + ab3_2 + ab4_2;
+
+                double curr_dist1 = ab1_2 + ab2_2;
+                double curr_dist2 = ab3_2 + ab4_2;
+
+                curr_dist += curr_dist1 + curr_dist2;
             }
+
+
+            
             curr_dist = sqrt(curr_dist);
 
             context->dist_gt[i_trn] = curr_dist;

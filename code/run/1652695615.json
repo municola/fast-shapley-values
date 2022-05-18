@@ -1,5 +1,5 @@
 {
-    "label": "opt4",
+    "label": "KNN opt4 (Nici)",
     "git_status" : "modified",
     "git_branch" : "master",
     "compiler" : "gcc",

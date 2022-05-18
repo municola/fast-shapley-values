@@ -10,3 +10,5 @@ cifar-10-batches-bin
 cifar-10-batches-py/
 .JPEG
 *__pycache__*
+../.vscode/
+*/vscode

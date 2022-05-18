@@ -130,12 +130,6 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
     
     // Actual correctness tests
     bool implementation_correct = test_vars.correctness_check_func((void*)&test_vars, (void*)&test_ctxt);
-    #ifdef DEBUG
-    if(!implementation_correct){
-        printf("Correctness tests failed\n");
-        exit(1);
-    }
-    #endif
 
     // Write collected info to the runfile:
     char tmpbuf[512]; 
@@ -231,6 +225,12 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
            run_variables->number_of_runs
     );
     for(size_t i=0; i<80; i++) { printf("-"); } printf("\n");
+
+
+    if(!implementation_correct){
+        printf("Correctness tests failed. Aborting...\n");
+        exit(1);
+    }
 }
 
 char *bold(char *s){

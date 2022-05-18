@@ -41,10 +41,11 @@ void init_context(context_t *ctx, int input_size){
 
     ctx->size_x_trn = input_size / 2;
     ctx->size_y_trn = input_size / 2 ;
-    
-    ctx->T = 1;
+
     ctx->K = 1;
     
+    // T := 1/(K*eps)^2 * log(2K/delta)
+    ctx->T = 640; // for eps = delta = 0.05 and K = 1
 
     // Allocate memory - Load data
     if(ctx->x_trn) free(ctx->x_trn);
