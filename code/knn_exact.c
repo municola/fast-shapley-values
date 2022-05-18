@@ -203,8 +203,8 @@ void knn__exact_opt(void *context_ptr) {
                     for (int j1=j; j1<j+B; j1++){
                         for (int k1=k; k1<k+B; k1++){
                             // c[i1*test_length + j1] += (a[i1*test_length + k1]-b[j1*train_length+k1])^2
-                            double a = context->x_tst[i1*test_length + k1];
-                            double b = context->x_trn[j1*train_length + k1];
+                            double a = context->x_tst[i1*f_length + k1];
+                            double b = context->x_trn[j1*f_length + k1];
                             double ab_2 = pow((a-b),2);
                             //debug_print("i1=%d j1=%d\n", i1, j1);
                             context->dist_gt[i1*train_length + j1] += ab_2;
