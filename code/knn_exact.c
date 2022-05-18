@@ -85,6 +85,10 @@ void knn__exact_opt(void *context_ptr) {
     int test_length = context->size_x_tst;
     int f_length = context->feature_len;
 
+    double *x_trn = context->x_trn;
+    double *x_tst = context->x_tst;
+    double *dist = context->dist_gt;
+
     assert(train_length % B == 0);
     assert(test_length % B == 0);
     assert(f_length % B == 0);
@@ -99,10 +103,10 @@ void knn__exact_opt(void *context_ptr) {
                     for (int j1=j; j1<j+B; j1++){
                         for (int k1=k; k1<k+B; k1++){
                             // c[i1*test_length + j1] += (a[i1*test_length + k1]-b[j1*train_length+k1])^2
-                            double a = context->x_tst[i1*f_length + k1];
-                            double b = context->x_trn[j1*f_length + k1];
+                            double a = x_tst[i1*f_length + k1];
+                            double b = x_trn[j1*f_length + k1];
                             double ab_2 = pow((a-b),2);
-                            context->dist_gt[i1*train_length + j1] += ab_2;
+                            dist[i1*train_length + j1] += ab_2;
                         }
                     }
                 }
@@ -110,8 +114,8 @@ void knn__exact_opt(void *context_ptr) {
             // Square root
             for (int i2=i; i2<i+B; i2++) {
                 for (int j2=j; j2<j+B; j2++) {
-                    double t = sqrt(context->dist_gt[i2*train_length + j2]);
-                    context->dist_gt[i2*train_length + j2] = t;
+                    double t = sqrt(dist[i2*train_length + j2]);
+                    dist[i2*train_length + j2] = t;
                 }
             }
         }
