@@ -13,3 +13,4 @@ void knn__exact_opt(void *context);
 void knn_exact_base(void *context);
 
 int compar(const void* a, const void* b);
+int compar_block(const void *a, const void *b);

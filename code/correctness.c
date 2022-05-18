@@ -6,6 +6,7 @@
 #include "io.h"
 #include "base_exact_shapley.h"
 #include "base_mc_approx_shapley.h"
+#include "combined_exact_knn_shapley.h"
 #include "knn_exact.h"
 #include "knn_approx.h"
 
@@ -49,12 +50,9 @@ bool exact_correct(run_variables_t *run_variables, void *context) {
     compute_single_unweighted_knn_class_shapley(context);
 
     init_context(test_ctx2, ctx->input_size);
+
     // replace both functions with whatever you want to test
-
-    // knn_exact_base((void*)test_ctx2);
-    knn__exact_opt((void*)test_ctx2);
-
-    current_opt_compute_single_unweighted_knn_class_shapley((void*)test_ctx2);
+    combined_knn_shapley_opt((void*)test_ctx2);
 
     double error_knn = nrm_sqr_diff_int(ctx->x_test_knn_gt, test_ctx2->x_test_knn_gt, ctx->size_x_trn*ctx->size_x_tst);
     debug_print("KNN Correctness: Error < EPS: %f < %f", error_knn, EPS);

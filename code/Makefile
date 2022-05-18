@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -lm -O3 
 
-CFILES = shapley_values.c base_exact_shapley.c base_mc_approx_shapley.c io.c utils.c runfile.c benchmark.c correctness.c implementations.c knn_exact.c knn_approx.c 
-CHEADERS = shapley_values.h base_exact_shapley.h base_mc_approx_shapley.h io.h utils.h runfile.h benchmark.h correctness.h implementations.h knn_exact.h knn_approx.h
+CFILES = shapley_values.c base_exact_shapley.c base_mc_approx_shapley.c io.c utils.c runfile.c benchmark.c correctness.c implementations.c knn_exact.c knn_approx.c combined_exact_knn_shapley.c
+CHEADERS = shapley_values.h base_exact_shapley.h base_mc_approx_shapley.h io.h utils.h runfile.h benchmark.h correctness.h implementations.h knn_exact.h knn_approx.h combined_exact_knn_shapley.h
 FILES = $(CFILES) $(CHEADERS)
 
 GITREV = $(shell git log -1 --format=%h)

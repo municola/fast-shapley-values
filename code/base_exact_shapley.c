@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "benchmark.h"
 #include "knn_exact.h"
+#include "combined_exact_knn_shapley.h"
 
 void compute_single_unweighted_knn_class_shapley(void *context_ptr){
     context_t *context = (context_t*)context_ptr;
@@ -89,10 +90,8 @@ uint64_t run_shapley(void *context) {
     uint64_t start_timer, end_timer;
 
 
-    // knn_exact_base(ctx);
-
     start_timer = start_tsc();
-    knn__exact_opt(ctx);
+    combined_knn_shapley_opt(context);
     end_timer = stop_tsc(start_timer);
 
 
@@ -107,8 +106,6 @@ uint64_t run_shapley(void *context) {
         debug_print("%s", "\n");
     }
     #endif
-
-    current_opt_compute_single_unweighted_knn_class_shapley(ctx);
 
     printf("Cycles: %lu\n", end_timer);
 
@@ -187,7 +184,6 @@ void opt1_compute_single_unweighted_knn_class_shapley(void *context_ptr){
     context_t *context = (context_t*)context_ptr;
     debug_print("%s", "\nStart Shapley computation:\n");
     
-
     size_t size_x_trn = context->size_x_trn;
     int* x_test_knn_gt = context->x_test_knn_gt;
     double* y_trn = context->y_trn;
