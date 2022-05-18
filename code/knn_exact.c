@@ -92,6 +92,7 @@ void knn__exact_opt(void *context_ptr) {
     assert(train_length % B == 0);
     assert(test_length % B == 0);
     assert(f_length % B == 0);
+    assert(B % 4 == 0);
 
     for (int i=0; i<test_length; i+=B) {
         for (int j=0; j<train_length; j+=B) {
@@ -101,13 +102,32 @@ void knn__exact_opt(void *context_ptr) {
                 /* B x B Block Calculation */
                 for (int i1=i; i1<i+B; i1++){
                     for (int j1=j; j1<j+B; j1++){
-                        for (int k1=k; k1<k+B; k1++){
-                            // c[i1*test_length + j1] += (a[i1*test_length + k1]-b[j1*train_length+k1])^2
-                            double a = x_tst[i1*f_length + k1];
-                            double b = x_trn[j1*f_length + k1];
-                            double ab_2 = pow((a-b),2);
-                            dist[i1*train_length + j1] += ab_2;
+                        
+                        double dist_acc1 = 0;
+                        double dist_acc2 = 0;
+                        double dist_acc3 = 0;
+                        double dist_acc4 = 0;
+                        
+                        for (int k1=k; k1<k+B; k1+=4){
+                            double a0 = x_tst[i1*f_length + k1 + 0];
+                            double b0 = x_trn[j1*f_length + k1 + 0];
+                            double a1 = x_tst[i1*f_length + k1 + 1];
+                            double b1 = x_trn[j1*f_length + k1 + 1];
+                            double a2 = x_tst[i1*f_length + k1 + 2];
+                            double b2 = x_trn[j1*f_length + k1 + 2];
+                            double a3 = x_tst[i1*f_length + k1 + 3];
+                            double b3 = x_trn[j1*f_length + k1 + 3];
+                            
+                            dist_acc1 += (a0-b0)*(a0-b0);
+                            dist_acc2 += (a1-b1)*(a1-b1);
+                            dist_acc3 += (a2-b2)*(a2-b2);
+                            dist_acc4 += (a3-b3)*(a3-b3);
                         }
+
+                        double acc_sum1 = dist_acc1 + dist_acc2;
+                        double acc_sum2 = dist_acc3 + dist_acc4;
+
+                        dist[i1*train_length + j1] += acc_sum1 + acc_sum2;
                     }
                 }
             }
