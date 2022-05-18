@@ -105,7 +105,7 @@ void combined_knn_shapley_opt1(void *context_ptr) {
 
 
 void combined_knn_shapley_opt(void *context_ptr) {
-    /* opt2: Blocked Knn + normal integratet shapley*/
+    /* opt2: Blocked Knn + normal integratet shapley + normal integrated sorting*/
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     int B = 12;
@@ -175,7 +175,7 @@ void combined_knn_shapley_opt(void *context_ptr) {
                 }
             }
         }
-        
+
         // Shapley Computation + Sorting
         // So far we have calculated M[i,:] to M[i+B,:] where M is the result Matrix (size=train*test)
         for (int b=i; b<i+B; b++){
