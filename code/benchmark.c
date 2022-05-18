@@ -33,6 +33,7 @@ void init_context(context_t *ctx, int input_size){
 
     // KNN result
     ctx->x_test_knn_gt = NULL;
+    ctx->x_test_knn_r_gt = NULL;
 
     ctx->size_x_tst = input_size / 2;
     ctx->size_y_tst = input_size / 2;
@@ -60,6 +61,9 @@ void init_context(context_t *ctx, int input_size){
     
     if(ctx->x_test_knn_gt) free(ctx->x_test_knn_gt);
     ctx->x_test_knn_gt = calloc(ctx->size_x_trn * ctx->size_x_tst, sizeof(int));
+
+    if(ctx->x_test_knn_r_gt) free(ctx->x_test_knn_r_gt);
+    ctx->x_test_knn_r_gt = calloc(ctx->size_x_trn * ctx->size_x_tst, sizeof(int));
 
     if(ctx->sp_gt) free(ctx->sp_gt);
     ctx->sp_gt = calloc(ctx->size_x_trn * ctx->size_x_tst, sizeof(double));

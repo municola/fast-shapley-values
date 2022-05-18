@@ -128,7 +128,7 @@ void opt1_compute_shapley_using_improved_mc_approach(void *context) {
             // for each point in the permutation check if it changes test accuracy
             for (int i = 0; i < ctx->size_x_trn; i++) {
                 // check if pi_i is the a nearest neighbor (only then it changes the test accuracy)
-                if (size < (int)ctx->K || ctx->x_test_knn_gt[j*ctx->size_x_trn+pi[i]] < maxheap[0]) {
+                if (size < (int)ctx->K || ctx->x_test_knn_r_gt[j*ctx->size_x_trn+pi[i]] < maxheap[0]) {
                     double v_incl_i = (double)(ctx->y_trn[pi[i]] == ctx->y_tst[j]);
                     double v_excl_i = (nn == -1) ? 0.0 : (double)(ctx->y_trn[nn] == ctx->y_tst[j]);
                     phi[t*ctx->size_x_trn+pi[i]] = v_incl_i - v_excl_i;
