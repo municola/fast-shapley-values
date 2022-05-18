@@ -141,44 +141,7 @@ void knn_exact_base(void *context_ptr) {
 
 
 
-void knn__exact_opt7(void *context_ptr) {
-    /* opt6: Blocking */
-    /* knn__exact_opt   knn_exact_base */
-    context_t *context = (context_t *) context_ptr;
-    double curr_dist;
-    int train_length = context->size_x_trn;
-    int test_length = context->size_x_tst;
-
-    // Loop through each test point
-    for (int i_tst=0; i_tst<test_length; i_tst++) {
-        // Loop through each train point
-        for (int i_trn=0; i_trn<train_length; i_trn++){
-            curr_dist = 0;
-            for (int i_feature=0; i_feature<context->feature_len; i_feature++) {
-                curr_dist += 
-                pow(context->x_trn[i_trn*context->feature_len + i_feature] - 
-                        context->x_tst[i_tst*context->feature_len + i_feature], 2);
-            }
-            curr_dist = sqrt(curr_dist);
-            context->dist_gt[i_tst*train_length + i_trn] = curr_dist;
-        }
-    }
-
-    
-    for (int i_tst=0; i_tst<test_length; i_tst++) {
-        // get the indexes that would sort the array
-        dist_gt_row = &context->dist_gt[i_tst*train_length];
-        int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
-        for (int i=0; i<train_length; i++) {
-            sorted_indexes[i] = i;
-        }
-        qsort(sorted_indexes, train_length, sizeof(int), compar_block);
-        memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
-    }
-    
-}
-
-void knn__exact_opt(void *context_ptr) {
+void knn__exact_opt6(void *context_ptr) {
     /* opt6: Blocking */
     /* knn__exact_opt   knn_exact_base */
     context_t *context = (context_t *) context_ptr;
@@ -188,13 +151,10 @@ void knn__exact_opt(void *context_ptr) {
     int test_length = context->size_x_tst;
     int f_length = context->feature_len;
 
-    debug_print("train_length: %d\n", train_length);
     assert(train_length % B == 0);
     assert(test_length % B == 0);
     assert(f_length % B == 0);
 
-    assert(train_length == test_length);
-    
     for (int i=0; i<test_length; i+=B) {
         for (int j=0; j<train_length; j+=B) {
             for (int k=0; k<f_length; k+=B) {
@@ -206,7 +166,6 @@ void knn__exact_opt(void *context_ptr) {
                             double a = context->x_tst[i1*f_length + k1];
                             double b = context->x_trn[j1*f_length + k1];
                             double ab_2 = pow((a-b),2);
-                            //debug_print("i1=%d j1=%d\n", i1, j1);
                             context->dist_gt[i1*train_length + j1] += ab_2;
                         }
                     }
