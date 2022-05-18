@@ -37,6 +37,7 @@ void compute_single_unweighted_knn_class_shapley(void *context_ptr){
             context->sp_gt[j*context->size_x_trn + context->x_test_knn_gt[index_j_i]] = s_j_alpha_i_plus_1 + (difference / context->K) * (min_K_i / (i+1));
         }
     }
+
     debug_print("%s", "Exact: Shapley Values done :)\n");
 }
 
@@ -166,6 +167,17 @@ void current_opt_compute_single_unweighted_knn_class_shapley(void *context_ptr){
             sp_gt[j*size_x_trn + x_test_knn_gt[index_j_i]] = s_j_alpha_i_plus_1 + (difference / K) * (min_K_i / (i+1));
         }
     }
+
+    /*
+    for (int i = 0; i < context->size_x_trn; i++) {
+        double sum = 0;
+        for (int j = 0; j < context->size_x_tst; j++) {
+            sum += context->sp_gt[j*context->size_x_trn+i];
+        }
+        debug_print("SV of training point %d is %f\n", i, sum / context->size_x_tst);
+    }
+    */
+
     debug_print("%s", "Exact: Shapley Values done :)\n");
 }
 

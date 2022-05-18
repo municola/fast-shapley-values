@@ -31,9 +31,11 @@ void compute_shapley_using_improved_mc_approach(void *context) {
     int* pi = (int*)calloc(ctx->size_x_trn, sizeof(int));
     double* phi = (double*)calloc(ctx->size_x_trn * ctx->T, sizeof(double));
     
+    srand(0);
     debug_print("T is: %d\n", ctx->T);
+    debug_print("K is: %d\n", ctx->K);
     debug_print("size_x_trn is: %d\n", ctx->size_x_trn);
-    debug_print("size_x_tst is: %d\n", ctx->size_x_tst);
+    debug_print("size_x_tst is: %d\n\n", ctx->size_x_tst);
 
     // calculate the shapley values for each test point j
     for (int j = 0; j < ctx->size_x_tst; j++) {
@@ -69,90 +71,32 @@ void compute_shapley_using_improved_mc_approach(void *context) {
         }
     }
 
-    debug_print("%s", "\n");
-    debug_print("%s", "Shapley Values:\n");
-    for (int i = 0; i<5;i++) {
-        for (int j = 0; j<10;j++) {
-            debug_print("%f, ", ctx->sp_gt[i*ctx->size_x_trn+j]);
-        }
-        debug_print("%s", "\n");
-    }
-
-    for (int i = 0; i  < ctx->size_x_trn; i++) {
+    #ifdef DEBUG
+    for (int i = 0; i < ctx->size_x_trn; i++) {
         double sum = 0;
         for (int j = 0; j < ctx->size_x_tst; j++) {
             sum += ctx->sp_gt[j*ctx->size_x_trn+i];
         }
         debug_print("SV of training point %d is %f\n", i, sum / ctx->size_x_tst);
     }
+    #endif
 
     free(phi);
     free(pi);
 
-    debug_print("%s", "Approx: Got Shapley done :)\n");
+    debug_print("%s", "\nApprox: Got Shapley done :)\n\n");
     return;
 }
 
 uint64_t run_approx_shapley(void *context) {
     context_t *ctx = (context_t *)context;
 
-    #ifdef DEBUG
-    //Sanity check, to make sure that C and Python are doing the same thing
-    debug_print("%s", "x_trn:\n");
-    for (int i = 0; i<3;i++) {
-        for (int j = 0; j<3;j++) {
-            debug_print("%f, ", ctx->x_trn[i*ctx->feature_len+j]);
-        }
-        debug_print("%s", "\n");
-    }
-
-   debug_print("%s", "\n");
-   debug_print("%s", "x_tst:\n");
-    for (int i = 0; i<3;i++) {
-        for (int j = 0; j<3;j++) {
-            debug_print("%f, ", ctx->x_tst[i*ctx->feature_len+j]);
-        }
-        debug_print("%s", "\n");
-    }
-
-    debug_print("%s", "\n");
-    debug_print("%s", "y_tst:\n");
-    for (int i = 0; i<ctx->size_y_tst;i++) {
-        debug_print("%f, ", ctx->y_tst[i]);
-    }
-    debug_print("%s", "\n");
-    debug_print("%s", "\n");
-    #endif
-
     uint64_t start_timer, end_timer;
 
     start_timer = start_tsc();
     get_true_approx_KNN(ctx);
-
-    #ifdef DEBUG
-    debug_print("%s", "\n");
-    debug_print("%s", "X_tst_dist_gt_array:\n");
-    for (int i = 0; i<5;i++) {
-        for (int j = 0; j<10;j++) {
-            debug_print("%d, ", ctx->x_test_knn_gt[i*ctx->size_x_trn+j]);
-        }
-        debug_print("%s", "\n");
-    }
-    #endif
-
-    
     compute_shapley_using_improved_mc_approach(ctx);
     end_timer = stop_tsc(start_timer);
-
-    // print sp_gt array
-    debug_print("%s", "\n");
-    debug_print("%s", "Shapley Values:\n");
-    for (int i = 0; i<5;i++) {
-        for (int j = 0; j<10;j++) {
-            debug_print("%f, ", ctx->sp_gt[i*ctx->size_x_trn+j]);
-        }
-        debug_print("%s", "\n");
-    }
 
     return end_timer;
 }
@@ -200,5 +144,5 @@ void opt1_compute_shapley_using_improved_mc_approach(void *context) {
     free(phi);
     free(pi);
 
-    debug_print("%s", "Approx: Got Shapley done :)\n");
+    debug_print("%s", "\n\nApprox: Got Shapley done :)\n\n");
 }

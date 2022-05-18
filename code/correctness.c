@@ -84,10 +84,10 @@ bool approx_correct(run_variables_t *run_variables, void *context) {
     compute_shapley_using_improved_mc_approach((void*)test_ctx2);
 
     double error_knn = nrm_sqr_diff_int(ctx->x_test_knn_gt, test_ctx2->x_test_knn_gt, ctx->size_x_trn*ctx->size_x_tst);
-    debug_print("KNN Correctness: Error < EPS: %f < %f", error_knn, EPS);
+    debug_print("\nKNN Correctness: Error < EPS: %f < %f\n", error_knn, EPS);
 
     double error_shapley = nrm_sqr_diff_double(ctx->sp_gt, test_ctx2->sp_gt, ctx->size_x_trn*ctx->size_x_tst);
-    debug_print("Shapley Correctness: Error < EPS: %f < %f", error_shapley, EPS);
+    debug_print("\nShapley Correctness: Error < EPS: %f < %f\n\n", error_shapley, EPS);
 
     double error = error_knn + error_shapley;
     return error < EPS;
