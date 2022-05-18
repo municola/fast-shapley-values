@@ -26,7 +26,7 @@ void exact_shapley_base(void *context_ptr) {
 }
 
 
-void combined_knn_shapley_opt(void *context_ptr) {
+void combined_knn_shapley_opt1(void *context_ptr) {
     /* opt1: just combined */
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
@@ -104,8 +104,8 @@ void combined_knn_shapley_opt(void *context_ptr) {
 }
 
 
-void combined_knn_shapley_opt2(void *context_ptr) {
-    /* opt2: Blocking*/
+void combined_knn_shapley_opt(void *context_ptr) {
+    /* opt2: Blocked Knn + normal integratet shapley*/
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     int B = 12;
@@ -116,6 +116,14 @@ void combined_knn_shapley_opt2(void *context_ptr) {
     double *x_trn = context->x_trn;
     double *x_tst = context->x_tst;
     double *dist = context->dist_gt;
+
+    int* x_test_knn_gt = context->x_test_knn_gt;
+    double* y_trn = context->y_trn;
+    double* y_tst = context->y_tst;
+    double* sp_gt = context->sp_gt;
+    double K = context->K;
+    double inv_K = 1.0 / K;
+    double inv_train_length = 1.0/train_length;
 
     assert(train_length % B == 0);
     assert(test_length % B == 0);
@@ -166,21 +174,38 @@ void combined_knn_shapley_opt2(void *context_ptr) {
                     dist[i2*train_length + j2] = t;
                 }
             }
-        // TODO
-        // HERE ADD THE (Blocked) Shapley computation
         }
-    }
+        
+        // Shapley Computation + Sorting
+        // So far we have calculated M[i,:] to M[i+B,:] where M is the result Matrix (size=train*test)
+        for (int b=i; b<i+B; b++){
+            /* Sorting */
+            dist_gt_row = &context->dist_gt[b*train_length];
+            int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
+            for (int idx=0; idx<train_length; idx++) {
+                sorted_indexes[idx] = idx;
+            }
+            qsort(sorted_indexes, train_length, sizeof(int), compar_block);
+            // This memcpy is theoretically not needed
+            memcpy(context->x_test_knn_gt+(b*train_length), sorted_indexes, train_length*sizeof(int));
 
-    // Sorting
-    for (int i_tst=0; i_tst<test_length; i_tst++) {
-        // get the indexes that would sort the array
-        dist_gt_row = &context->dist_gt[i_tst*train_length];
-        int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
-        for (int i=0; i<train_length; i++) {
-            sorted_indexes[i] = i;
+            /* Shapley */
+            // Line 3 in algo
+            int a_N = sorted_indexes[train_length-1];
+            double y_test_j = y_tst[b];
+            double indicator = (y_trn[a_N] == y_test_j) ? 1.0 : 0.0;
+            sp_gt[b*train_length + a_N] = indicator * inv_train_length;
+            // Calculate the shapley by moving from N-1 to 1 (loop line 4)
+            for (int sj=train_length-2; sj>-1; sj--) {
+                int x_test_knn_gt_i = sorted_indexes[sj];
+                int x_test_knn_gt_i_plus_one = sorted_indexes[sj+1];
+                double s_j_alpha_i_plus_1 = sp_gt[b*train_length + x_test_knn_gt_i_plus_one];
+                double difference = (double)(y_trn[x_test_knn_gt_i] == y_test_j) - 
+                                            (double)(y_trn[x_test_knn_gt_i_plus_one] == y_test_j);
+                double min_K_i = K < sj+1 ? K : sj+1;
+                sp_gt[b*train_length + sorted_indexes[sj]] = s_j_alpha_i_plus_1 + (difference * inv_K) * (min_K_i / (sj+1));                
+            }
         }
-        qsort(sorted_indexes, train_length, sizeof(int), compar_block);
-        memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
 }
 
