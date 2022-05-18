@@ -45,13 +45,13 @@ void compute_shapley_using_improved_mc_approach(void *context) {
 
             fisher_yates_shuffle(pi, ctx->size_x_trn);
 
-            // nearest neighbor in set of training points pi_0 to pi_i
-            int nn = -1;
+            int maxheap[ctx->K];
+            size = 0;
 
             // for each point in the permutation check if it changes test accuracy
             for (int i = 0; i < ctx->size_x_trn; i++) {
-                // check if pi_i is the new nearest neighbor (only then it changes the test accuracy)
-                if (nn == -1 || ctx->x_test_knn_gt[j*ctx->size_x_trn+pi[i]] < ctx->x_test_knn_gt[j*ctx->size_x_trn+nn]) {
+                // check if pi_i is the a nearest neighbor (only then it changes the test accuracy)
+                if (size < (int)ctx->K || ctx->x_test_knn_gt[j*ctx->size_x_trn+pi[i]] < maxheap[0]) {
                     double v_incl_i = (double)(ctx->y_trn[pi[i]] == ctx->y_tst[j]);
                     double v_excl_i = (nn == -1) ? 0.0 : (double)(ctx->y_trn[nn] == ctx->y_tst[j]);
                     phi[t*ctx->size_x_trn+pi[i]] = v_incl_i - v_excl_i;
@@ -103,9 +103,16 @@ uint64_t run_approx_shapley(void *context) {
 
 void opt1_compute_shapley_using_improved_mc_approach(void *context) {
 
-    context_t *ctx = (context_t *)context; 
+    context_t *ctx = (context_t *)context;
+
     int* pi = (int*)calloc(ctx->size_x_trn, sizeof(int));
     double* phi = (double*)calloc(ctx->size_x_trn * ctx->T, sizeof(double));
+    
+    srand(0);
+    debug_print("T is: %d\n", ctx->T);
+    debug_print("K is: %d\n", ctx->K);
+    debug_print("size_x_trn is: %d\n", ctx->size_x_trn);
+    debug_print("size_x_tst is: %d\n\n", ctx->size_x_tst);
 
     // calculate the shapley values for each test point j
     for (int j = 0; j < ctx->size_x_tst; j++) {
@@ -115,23 +122,23 @@ void opt1_compute_shapley_using_improved_mc_approach(void *context) {
 
             fisher_yates_shuffle(pi, ctx->size_x_trn);
 
-            // nearest neighbor in set of training points pi_0 to pi_i
-            int nn = -1;
+            int maxheap[ctx->K];
+            size = 0;
 
             // for each point in the permutation check if it changes test accuracy
             for (int i = 0; i < ctx->size_x_trn; i++) {
-                
-                // check if pi_i is the new nearest neighbor (only then it changes the test accuracy)
-                if (nn == -1 || ctx->dist_gt[j*ctx->size_x_trn+pi[i]] < ctx->dist_gt[j*ctx->size_x_trn+nn]) {
+                // check if pi_i is the a nearest neighbor (only then it changes the test accuracy)
+                if (size < (int)ctx->K || ctx->x_test_knn_gt[j*ctx->size_x_trn+pi[i]] < maxheap[0]) {
                     double v_incl_i = (double)(ctx->y_trn[pi[i]] == ctx->y_tst[j]);
                     double v_excl_i = (nn == -1) ? 0.0 : (double)(ctx->y_trn[nn] == ctx->y_tst[j]);
                     phi[t*ctx->size_x_trn+pi[i]] = v_incl_i - v_excl_i;
                     nn = pi[i];
                 } else {
-                    phi[t*ctx->size_x_trn+pi[i]] = phi[t*ctx->size_x_trn+pi[i-1]];
+                    phi[t*ctx->size_x_trn+pi[i]] = 0;
                 }
             }
         }
+    
         for (int i = 0; i < ctx->size_x_trn; i++) {
             ctx->sp_gt[j*ctx->size_x_trn+i] = 0;
             for (int t = 0; t < ctx->T; t++) {
@@ -141,8 +148,19 @@ void opt1_compute_shapley_using_improved_mc_approach(void *context) {
         }
     }
 
+    #ifdef DEBUG
+    for (int i = 0; i < ctx->size_x_trn; i++) {
+        double sum = 0;
+        for (int j = 0; j < ctx->size_x_tst; j++) {
+            sum += ctx->sp_gt[j*ctx->size_x_trn+i];
+        }
+        debug_print("SV of training point %d is %f\n", i, sum / ctx->size_x_tst);
+    }
+    #endif
+
     free(phi);
     free(pi);
 
-    debug_print("%s", "\n\nApprox: Got Shapley done :)\n\n");
+    debug_print("%s", "\nApprox: Got Shapley done :)\n\n");
+    return;
 }

@@ -60,6 +60,7 @@ void get_true_approx_KNN(void *context_ptr) {
 
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_distances, context->size_x_trn * sizeof(int));
+        memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_distances, context->size_x_trn * sizeof(int));
 
         /*
         debug_print("%s", "Sorted Distances\n");

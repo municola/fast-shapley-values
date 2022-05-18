@@ -6,6 +6,7 @@
 typedef struct context {
     int input_size;
     int *x_test_knn_gt;
+    int *x_test_knn_r_gt;
     double *sp_gt;
     double *x_trn;
     double *x_tst;
