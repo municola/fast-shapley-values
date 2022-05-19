@@ -81,10 +81,6 @@ void compute_shapley_using_improved_mc_approach(void *context) {
     double* phi = (double*)calloc(ctx->size_x_trn * ctx->T, sizeof(double));
     
     srand(0);
-    debug_print("T is: %d\n", ctx->T);
-    debug_print("K is: %d\n", (int)ctx->K);
-    debug_print("size_x_trn is: %ld\n", ctx->size_x_trn);
-    debug_print("size_x_tst is: %ld\n\n", ctx->size_x_tst);
 
     int K = (int)ctx->K;
     size_t size_x_trn = ctx->size_x_trn;
@@ -151,16 +147,6 @@ void compute_shapley_using_improved_mc_approach(void *context) {
         }
     }
 
-    #ifdef DEBUG
-    for (int i = 0; i < size_x_trn; i++) {
-        double sum = 0;
-        for (int j = 0; j < size_x_tst; j++) {
-            sum += ctx->sp_gt[j*size_x_trn+i];
-        }
-        debug_print("SV of training point %d is %f\n", i, sum / size_x_tst);
-    }
-    #endif
-
     free(phi);
     free(pi);
 
@@ -176,9 +162,9 @@ void compute_shapley_using_improved_mc_approach_K1(void *context) {
     
     srand(0);
     debug_print("T is: %d\n", ctx->T);
-    debug_print("K is: %d\n", ctx->K);
-    debug_print("size_x_trn is: %d\n", ctx->size_x_trn);
-    debug_print("size_x_tst is: %d\n\n", ctx->size_x_tst);
+    debug_print("K is: %d\n", (int)ctx->K);
+    debug_print("size_x_trn is: %ld\n", ctx->size_x_trn);
+    debug_print("size_x_tst is: %ld\n\n", ctx->size_x_tst);
 
     // calculate the shapley values for each test point j
     for (int j = 0; j < ctx->size_x_tst; j++) {
@@ -242,22 +228,31 @@ void opt1_compute_shapley_using_improved_mc_approach(void *context) {
     
     srand(0);
 
+    debug_print("T is: %d\n", ctx->T);
+    debug_print("K is: %d\n", (int)ctx->K);
+    debug_print("size_x_trn is: %ld\n", ctx->size_x_trn);
+    debug_print("size_x_tst is: %ld\n\n", ctx->size_x_tst);
+
     int K = (int)ctx->K;
+    int T = ctx->T;
+    size_t size_x_trn = ctx->size_x_trn;
+    size_t size_x_tst = ctx->size_x_tst;
+
 
     // calculate the shapley values for each test point j
-    for (int j = 0; j < ctx->size_x_tst; j++) {
+    for (int j = 0; j < size_x_tst; j++) {
     
         // approximate by using T different random permutations pi
-        for (int t = 0; t < ctx->T; t++) {
+        for (int t = 0; t < T; t++) {
 
-            fisher_yates_shuffle(pi, ctx->size_x_trn);
+            fisher_yates_shuffle(pi, size_x_trn);
             int maxheap[K];
             size = 0;
 
             // for each point in the permutation check if it changes test accuracy
             for (int i = 0; i < ctx->size_x_trn; i++) {
                 // check if pi_i is the a nearest neighbor (only then it changes the test accuracy)
-                int dist_new = ctx->x_test_knn_r_gt[j*ctx->size_x_trn+pi[i]];
+                int dist_new = ctx->x_test_knn_r_gt[j*size_x_trn+pi[i]];
                 int max_dist = maxheap[0];
                 if (size < K || dist_new < max_dist) {
 
@@ -265,36 +260,46 @@ void opt1_compute_shapley_using_improved_mc_approach(void *context) {
                     int sum = 0; // sum of training points in max heap except greatest one
 
                     for (int k = 1; k < size; k++) {
-                        sum += (int)(ctx->y_trn[ctx->x_test_knn_gt[j*ctx->size_x_trn+maxheap[k]]] == ctx->y_tst[j]);
+                        sum += (int)(ctx->y_trn[ctx->x_test_knn_gt[j*size_x_trn+maxheap[k]]] == ctx->y_tst[j]);
                     }
 
                     double sum_d = (double)sum;
                     double v_incl_i = sum_d + (ctx->y_trn[pi[i]] == ctx->y_tst[j]);
                     if (size < K && size > 0) {
-                        v_incl_i += ctx->y_trn[ctx->x_test_knn_gt[j*ctx->size_x_trn+max_dist]] == ctx->y_tst[j];
+                        v_incl_i += ctx->y_trn[ctx->x_test_knn_gt[j*size_x_trn+max_dist]] == ctx->y_tst[j];
                     }
 
-                    double v_excl_i = (size == 0) ? 0.0 : (sum_d + (ctx->y_trn[ctx->x_test_knn_gt[j*ctx->size_x_trn+max_dist]] == ctx->y_tst[j]));
+                    double v_excl_i = (size == 0) ? 0.0 : (sum_d + (ctx->y_trn[ctx->x_test_knn_gt[j*size_x_trn+max_dist]] == ctx->y_tst[j]));
                     
                     v_incl_i /= min_K_size1;
                     v_excl_i /= (size == 0) ? 1 : (double)size;
 
-                    phi[t*ctx->size_x_trn+pi[i]] = v_incl_i - v_excl_i;
-                    insert(maxheap, ctx->x_test_knn_r_gt[j*ctx->size_x_trn+pi[i]], K);
+                    phi[t*size_x_trn+pi[i]] = v_incl_i - v_excl_i;
+                    insert(maxheap, ctx->x_test_knn_r_gt[j*size_x_trn+pi[i]], K);
                 } else {
-                    phi[t*ctx->size_x_trn+pi[i]] = 0;
+                    phi[t*size_x_trn+pi[i]] = 0;
                 }
             }
         }
     
-        for (int i = 0; i < ctx->size_x_trn; i++) {
-            ctx->sp_gt[j*ctx->size_x_trn+i] = 0;
+        for (int i = 0; i < size_x_trn; i++) {
+            ctx->sp_gt[j*size_x_trn+i] = 0;
             for (int t = 0; t < ctx->T; t++) {
-                ctx->sp_gt[j*ctx->size_x_trn+i] += phi[t*ctx->size_x_trn+i];
+                ctx->sp_gt[j*size_x_trn+i] += phi[t*size_x_trn+i];
             }
-            ctx->sp_gt[j*ctx->size_x_trn+i] /= (double)(ctx->T);
+            ctx->sp_gt[j*size_x_trn+i] /= (double)(ctx->T);
         }
     }
+
+    #ifdef DEBUG
+    for (int i = 0; i < size_x_trn; i++) {
+        double sum = 0;
+        for (int j = 0; j < size_x_tst; j++) {
+            sum += ctx->sp_gt[j*size_x_trn+i];
+        }
+        debug_print("SV of training point %d is %f\n", i, sum / size_x_tst);
+    }
+    #endif
 
     free(phi);
     free(pi);
