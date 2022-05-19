@@ -17,7 +17,9 @@ extern double *dist_gt;
 // Setup memory and "problem sizes" (feature length, etc.) given the input size
 void init_context(context_t *ctx, int input_size){
     ctx->input_size = input_size;
-    ctx->feature_len = 2048;
+
+    // must be divisible by the blocksize B
+    ctx->feature_len = 1200;
     // ctx->num_test_samples = 500;
 
     assert(ctx->input_size % 2 ==0);
@@ -70,7 +72,7 @@ void init_context(context_t *ctx, int input_size){
     
     // Allocate dist_gt and set global variable (needed for special compare func.!)
     if(ctx->dist_gt) free(ctx->dist_gt);
-    ctx->dist_gt = calloc(ctx->feature_len * ctx->size_x_tst, sizeof(double));
+    ctx->dist_gt = calloc(ctx->size_x_tst * ctx->size_x_trn, sizeof(double));
     dist_gt = ctx->dist_gt;
 
     read_bin_file_known_size(ctx->x_trn, "../data/features/cifar10/train_features.bin", ctx->size_x_trn*ctx->feature_len);

@@ -2,12 +2,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <assert.h>
 
 #include "tsc_x86.h"
 #include "benchmark.h"
 
 
 double* dist_gt;
+double* dist_gt_row;
 
 // Custom compare function for sorting, since we try to replicate numpys argsort function
 // We don't want to return the sorted array, but rather the indices that would sort the array
@@ -28,74 +30,25 @@ int compar (const void *a, const void *b)
 }
 
 
-/*
-Expected Behavior:
-- result is a 2D array of size_x_tst * size_x_trn
-- result[i][j] is the proximity rank of the jth train point regarding the ith test point.
-*/
-void get_true_exact_KNN(void *context_ptr) {
-    context_t *context = (context_t *) context_ptr;
-    double curr_dist;
-    // This array gets defined in the outermost scope, such that the pointer is available in the compar function
-    //dist_gt = (double*)calloc(size_x_trn, sizeof(double));
-
-    // Loop through each test point
-    for (int i_tst=0; i_tst<context->size_x_tst; i_tst++) {
-        // Loop through each train point
-        for (int i_trn=0; i_trn<context->size_x_trn; i_trn++){
-            // calculate the distance between the two points, just pythagoras...
-            curr_dist = 0;
-            for (int i_feature=0; i_feature<context->feature_len; i_feature++) {
-                curr_dist += 
-                pow(context->x_trn[i_trn*context->feature_len + i_feature] - 
-                        context->x_tst[i_tst*context->feature_len + i_feature], 2);
-            }
-            curr_dist = sqrt(curr_dist);
-
-            context->dist_gt[i_trn] = curr_dist;
-        }
-        // get the indexes that would sort the array
-        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
-        for (int i=0; i<context->size_x_trn; i++) {
-            sorted_indexes[i] = i;
-        }
-
-        // Sanity check in order to compare with python
-        debug_print("%s", "get_true_exact_KNN: dist_gt:\n");
-            for (int j = 0; j<10;j++) {
-                debug_print("%f, ", dist_gt[j]);
-            }
-            debug_print("%s", "\n");
-
-        qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
-
-        // copy to result array
-        memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
-
-        debug_print("%s", "Sorted Indexes\n");
-        for (int j = 0; j<context->size_x_trn;j++) {
-            debug_print("%d, ", sorted_indexes[j]);
-        }
-        debug_print("%s", "\n");
-
-
-        // Sanity check in order to compare with python
-        debug_print("%s", "get_true_exact_KNN: x_test_knn_gt:\n");
-        for (int j = 0; j<context->size_x_trn; j++) {
-            debug_print("%d, ", context->x_test_knn_gt[i_tst*context->size_x_trn + j]);
-        }
-        debug_print("%s", "\n");
-        
-    }
-
+int compar_block (const void *a, const void *b)
+{
+  int aa = *((int *) a), bb = *((int *) b);
+  if (dist_gt_row[aa] < dist_gt_row[bb])
+    return -1;
+  if (dist_gt_row[aa] == dist_gt_row[bb])
+    return 0;
+  if (dist_gt_row[aa] > dist_gt_row[bb])
+    return 1;
+  return 1;
 }
+
+
 
 
 void knn_exact_base(void *context_ptr) {
+    /* knn__exact_opt   knn_exact_base */
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
-    // This array gets defined in the outermost scope, such that the pointer is available in the compar function
-    //dist_gt = (double*)calloc(size_x_trn, sizeof(double));
 
     // Loop through each test point
     for (int i_tst=0; i_tst<context->size_x_tst; i_tst++) {
@@ -109,7 +62,6 @@ void knn_exact_base(void *context_ptr) {
                         context->x_tst[i_tst*context->feature_len + i_feature], 2);
             }
             curr_dist = sqrt(curr_dist);
-
             context->dist_gt[i_trn] = curr_dist;
         }
         // get the indexes that would sort the array
@@ -118,24 +70,201 @@ void knn_exact_base(void *context_ptr) {
             sorted_indexes[i] = i;
         }
 
-        // Sanity check in order to compare with python
-        // debug_print("dist_gt:\n");
-        //     for (int j = 0; j<10;j++) {
-        //         debug_print("%f, ", dist_gt[j]);
-        //     }
-        //     debug_print("\n");
-
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
-
-        // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
+}
 
+
+void knn__exact_opt(void *context_ptr) {
+    /* opt8: Blocking(all+sqrt) + Accumulators*/
+    context_t *context = (context_t *) context_ptr;
+    double curr_dist;
+    int B = 12;
+    int train_length = context->size_x_trn;
+    int test_length = context->size_x_tst;
+    int f_length = context->feature_len;
+
+    double *x_trn = context->x_trn;
+    double *x_tst = context->x_tst;
+    double *dist = context->dist_gt;
+
+    assert(train_length % B == 0);
+    assert(test_length % B == 0);
+    assert(f_length % B == 0);
+    assert(B % 4 == 0);
+
+    for (int i=0; i<test_length; i+=B) {
+        for (int j=0; j<train_length; j+=B) {
+            // Calculate 1 Block in output matrix (Need to go through the multiple blocks
+            // from the other two matrices)
+            for (int k=0; k<f_length; k+=B) {
+                /* B x B Block Calculation */
+                for (int i1=i; i1<i+B; i1++){
+                    for (int j1=j; j1<j+B; j1++){
+                        
+                        double dist_acc1 = 0;
+                        double dist_acc2 = 0;
+                        double dist_acc3 = 0;
+                        double dist_acc4 = 0;
+                        
+                        for (int k1=k; k1<k+B; k1+=4){
+                            double a0 = x_tst[i1*f_length + k1 + 0];
+                            double b0 = x_trn[j1*f_length + k1 + 0];
+                            double a1 = x_tst[i1*f_length + k1 + 1];
+                            double b1 = x_trn[j1*f_length + k1 + 1];
+                            double a2 = x_tst[i1*f_length + k1 + 2];
+                            double b2 = x_trn[j1*f_length + k1 + 2];
+                            double a3 = x_tst[i1*f_length + k1 + 3];
+                            double b3 = x_trn[j1*f_length + k1 + 3];
+                            
+                            dist_acc1 += (a0-b0)*(a0-b0);
+                            dist_acc2 += (a1-b1)*(a1-b1);
+                            dist_acc3 += (a2-b2)*(a2-b2);
+                            dist_acc4 += (a3-b3)*(a3-b3);
+                        }
+
+                        double acc_sum1 = dist_acc1 + dist_acc2;
+                        double acc_sum2 = dist_acc3 + dist_acc4;
+
+                        dist[i1*train_length + j1] += acc_sum1 + acc_sum2;
+                    }
+                }
+            }
+            // Square root
+            for (int i2=i; i2<i+B; i2++) {
+                for (int j2=j; j2<j+B; j2++) {
+                    double t = sqrt(dist[i2*train_length + j2]);
+                    dist[i2*train_length + j2] = t;
+                }
+            }
+        }
+    }
+
+    // Sorting
+    for (int i_tst=0; i_tst<test_length; i_tst++) {
+        // get the indexes that would sort the array
+        dist_gt_row = &context->dist_gt[i_tst*train_length];
+        int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
+        for (int i=0; i<train_length; i++) {
+            sorted_indexes[i] = i;
+        }
+        qsort(sorted_indexes, train_length, sizeof(int), compar_block);
+        memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
+    }
 }
 
 
 
-void knn__exact_opt(void *context_ptr) {
+void knn__exact_opt7(void *context_ptr) {
+    /* opt7: Blocking + Blocked sqrt*/
+    context_t *context = (context_t *) context_ptr;
+    double curr_dist;
+    int B = 8;
+    int train_length = context->size_x_trn;
+    int test_length = context->size_x_tst;
+    int f_length = context->feature_len;
+
+    assert(train_length % B == 0);
+    assert(test_length % B == 0);
+    assert(f_length % B == 0);
+
+    for (int i=0; i<test_length; i+=B) {
+        for (int j=0; j<train_length; j+=B) {
+            // Calculate 1 Block in output matrix (Need to go through the multiple blocks
+            // from the other two matrices)
+            for (int k=0; k<f_length; k+=B) {
+                /* B x B Block Calculation */
+                for (int i1=i; i1<i+B; i1++){
+                    for (int j1=j; j1<j+B; j1++){
+                        for (int k1=k; k1<k+B; k1++){
+                            // c[i1*test_length + j1] += (a[i1*test_length + k1]-b[j1*train_length+k1])^2
+                            double a = context->x_tst[i1*f_length + k1];
+                            double b = context->x_trn[j1*f_length + k1];
+                            double ab_2 = pow((a-b),2);
+                            context->dist_gt[i1*train_length + j1] += ab_2;
+                        }
+                    }
+                }
+            }
+            // Square root
+            for (int i2=i; i2<i+B; i2++) {
+                for (int j2=j; j2<j+B; j2++) {
+                    double t = sqrt(context->dist_gt[i2*train_length + j2]);
+                    context->dist_gt[i2*train_length + j2] = t;
+                }
+            }
+        }
+    }
+
+    // Sorting
+    for (int i_tst=0; i_tst<test_length; i_tst++) {
+        // get the indexes that would sort the array
+        dist_gt_row = &context->dist_gt[i_tst*train_length];
+        int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
+        for (int i=0; i<train_length; i++) {
+            sorted_indexes[i] = i;
+        }
+        qsort(sorted_indexes, train_length, sizeof(int), compar_block);
+        memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
+    }
+}
+
+
+
+void knn__exact_opt6(void *context_ptr) {
+    /* opt6: Blocking */
+    context_t *context = (context_t *) context_ptr;
+    double curr_dist;
+    int B = 12;
+    int train_length = context->size_x_trn;
+    int test_length = context->size_x_tst;
+    int f_length = context->feature_len;
+
+    assert(train_length % B == 0);
+    assert(test_length % B == 0);
+    assert(f_length % B == 0);
+
+    for (int i=0; i<test_length; i+=B) {
+        for (int j=0; j<train_length; j+=B) {
+            for (int k=0; k<f_length; k+=B) {
+                /* B x B Block Calculation */
+                for (int i1=i; i1<i+B; i1++){
+                    for (int j1=j; j1<j+B; j1++){
+                        for (int k1=k; k1<k+B; k1++){
+                            // c[i1*test_length + j1] += (a[i1*test_length + k1]-b[j1*train_length+k1])^2
+                            double a = context->x_tst[i1*f_length + k1];
+                            double b = context->x_trn[j1*f_length + k1];
+                            double ab_2 = pow((a-b),2);
+                            context->dist_gt[i1*train_length + j1] += ab_2;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for (int i_tst=0; i_tst<test_length; i_tst++) {
+        for (int i_trn=0; i_trn<train_length; i_trn++) {
+            context->dist_gt[i_tst*train_length + i_trn] = sqrt(context->dist_gt[i_tst*train_length + i_trn]);
+        }
+    }
+
+    // Sorting
+    for (int i_tst=0; i_tst<test_length; i_tst++) {
+        // get the indexes that would sort the array
+        dist_gt_row = &context->dist_gt[i_tst*train_length];
+        int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
+        for (int i=0; i<train_length; i++) {
+            sorted_indexes[i] = i;
+        }
+        qsort(sorted_indexes, train_length, sizeof(int), compar_block);
+        memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
+    }
+}
+
+
+void knn__exact_opt5(void *context_ptr) {
     /* opt5: based on opt1: 4 Accumulators
     accumulate sums
      */
@@ -479,3 +608,63 @@ void knn__exact_opt1(void *context_ptr) {
 }
 
 
+
+/*
+Expected Behavior:
+- result is a 2D array of size_x_tst * size_x_trn
+- result[i][j] is the proximity rank of the jth train point regarding the ith test point.
+*/
+void get_true_exact_KNN(void *context_ptr) {
+    context_t *context = (context_t *) context_ptr;
+    double curr_dist;
+    // This array gets defined in the outermost scope, such that the pointer is available in the compar function
+    //dist_gt = (double*)calloc(size_x_trn, sizeof(double));
+
+    // Loop through each test point
+    for (int i_tst=0; i_tst<context->size_x_tst; i_tst++) {
+        // Loop through each train point
+        for (int i_trn=0; i_trn<context->size_x_trn; i_trn++){
+            // calculate the distance between the two points, just pythagoras...
+            curr_dist = 0;
+            for (int i_feature=0; i_feature<context->feature_len; i_feature++) {
+                curr_dist += 
+                pow(context->x_trn[i_trn*context->feature_len + i_feature] - 
+                        context->x_tst[i_tst*context->feature_len + i_feature], 2);
+            }
+            curr_dist = sqrt(curr_dist);
+
+            context->dist_gt[i_trn] = curr_dist;
+        }
+        // get the indexes that would sort the array
+        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
+        for (int i=0; i<context->size_x_trn; i++) {
+            sorted_indexes[i] = i;
+        }
+
+        // Sanity check in order to compare with python
+        debug_print("%s", "get_true_exact_KNN: dist_gt:\n");
+            for (int j = 0; j<10;j++) {
+                debug_print("%f, ", dist_gt[j]);
+            }
+            debug_print("%s", "\n");
+
+        qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
+
+        // copy to result array
+        memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
+
+        debug_print("%s", "Sorted Indexes\n");
+        for (int j = 0; j<context->size_x_trn;j++) {
+            debug_print("%d, ", sorted_indexes[j]);
+        }
+        debug_print("%s", "\n");
+
+
+        // Sanity check in order to compare with python
+        debug_print("%s", "get_true_exact_KNN: x_test_knn_gt:\n");
+        for (int j = 0; j<context->size_x_trn; j++) {
+            debug_print("%d, ", context->x_test_knn_gt[i_tst*context->size_x_trn + j]);
+        }
+        debug_print("%s", "\n");   
+    }
+}
