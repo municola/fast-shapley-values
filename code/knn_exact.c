@@ -640,7 +640,7 @@ void get_true_exact_KNN(void *context_ptr) {
         for (int i=0; i<context->size_x_trn; i++) {
             sorted_indexes[i] = i;
         }
-
+        /*
         // Sanity check in order to compare with python
         debug_print("%s", "get_true_exact_KNN: dist_gt:\n");
             for (int j = 0; j<10;j++) {
@@ -649,10 +649,11 @@ void get_true_exact_KNN(void *context_ptr) {
             debug_print("%s", "\n");
 
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
-
+        */
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
 
+        /*
         debug_print("%s", "Sorted Indexes\n");
         for (int j = 0; j<context->size_x_trn;j++) {
             debug_print("%d, ", sorted_indexes[j]);
@@ -666,5 +667,6 @@ void get_true_exact_KNN(void *context_ptr) {
             debug_print("%d, ", context->x_test_knn_gt[i_tst*context->size_x_trn + j]);
         }
         debug_print("%s", "\n");   
+        */
     }
 }

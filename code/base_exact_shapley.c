@@ -39,6 +39,16 @@ void compute_single_unweighted_knn_class_shapley(void *context_ptr){
         }
     }
 
+    #ifdef DEBUG
+    for (int i = 0; i < context->size_x_trn; i++) {
+        double sum = 0;
+        for (int j = 0; j < context->size_x_tst; j++) {
+            sum += context->sp_gt[j*context->size_x_trn+i];
+        }
+        debug_print("SV of training point %d is %f\n", i, sum / context->size_x_tst);
+    }
+    #endif
+
     debug_print("%s", "Exact: Shapley Values done :)\n");
 }
 
@@ -72,7 +82,7 @@ uint64_t run_shapley(void *context) {
 
     debug_print("%s", "\n");
     debug_print("%s", "y_trn:\n");
-    for (int i = 0; i<500;i++) {
+    for (int i = 0; i<5;i++) {
         debug_print("%f, ", ctx->y_trn[i]);
     }
     debug_print("%s", "\n");
@@ -80,7 +90,7 @@ uint64_t run_shapley(void *context) {
 
     debug_print("%s", "\n");
     debug_print("%s", "y_test:\n");
-    for (int i = 0; i<500;i++) {
+    for (int i = 0; i<5;i++) {
         debug_print("%f, ", ctx->y_tst[i]);
     }
     debug_print("%s", "\n");
