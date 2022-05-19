@@ -76,7 +76,7 @@ bool approx_correct(run_variables_t *run_variables, void *context) {
     // DO NOT TOUCH, base implementations for correctness testing
     init_context(ctx, ctx->input_size);
     get_true_approx_KNN(context);
-    opt1_compute_shapley_using_improved_mc_approach(context);
+    compute_shapley_using_improved_mc_approach(context);
 
     init_context(test_ctx2, ctx->input_size);
     // replace with whatever function of interest
