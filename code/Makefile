@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -lm -O3 
+CFLAGS = -Wall -lm -O3 -mavx
 
 CFILES = shapley_values.c base_exact_shapley.c base_mc_approx_shapley.c io.c utils.c runfile.c benchmark.c correctness.c implementations.c knn_exact.c knn_approx.c combined_exact_knn_shapley.c
 CHEADERS = shapley_values.h base_exact_shapley.h base_mc_approx_shapley.h io.h utils.h runfile.h benchmark.h correctness.h implementations.h knn_exact.h knn_approx.h combined_exact_knn_shapley.h
@@ -19,4 +19,4 @@ project: $(FILES)
 	$(CC) $(CFLAGS) -DCC='"$(CC)"' -DCFLAGS='"$(CFLAGS)"' -DGITREV='"$(GITREV)"' -DGITBRANCH='"$(GITBRANCH)"' -DGITSTATUS='"$(GITSTATUS)"' -o shapley_values $(CFILES) -lm
 
 debug: $(FILES) 
-	$(CC) -Wall -pg -g -DCC='"$(CC)"' -DCFLAGS='"-pg -g"' -DGITREV='"$(GITREV)"' -DGITBRANCH='"$(GITBRANCH)"' -DGITSTATUS='"$(GITSTATUS)"' -DDEBUG -o shapley_values $(CFILES) -lm
+	$(CC) -Wall -pg -g -mavx -DCC='"$(CC)"' -DCFLAGS='"-pg -g"' -DGITREV='"$(GITREV)"' -DGITBRANCH='"$(GITBRANCH)"' -DGITSTATUS='"$(GITSTATUS)"' -DDEBUG -o shapley_values $(CFILES) -lm
