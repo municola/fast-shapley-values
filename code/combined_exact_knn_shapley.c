@@ -770,7 +770,7 @@ void combined_knn_shapley_opt6(void *context_ptr) {
 
 
 void combined_knn_shapley_opt(void *context_ptr) {
-    /* opt7: Vectorized: Most inner + loop unrolling of second-most-inner*/
+    /* opt7: Vectorized: Most inner + loop unrolling of second-most-inner + Sqrt*/
     /* Blocked Knn + optimized integratet shapley + normal integrated sorting + 8 Accumulators */
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
@@ -937,6 +937,7 @@ void combined_knn_shapley_opt(void *context_ptr) {
             double y_test_j = y_tst[b];
             double indicator = (y_trn[a_N] == y_test_j) ? 1.0 : 0.0;
             sp_gt[b*train_length + a_N] = indicator * inv_train_length;
+            
             // Calculate the shapley by moving from N-1 to 1 (loop line 4)
             for (int sj=train_length-2; sj>-1; sj--) {
                 int x_test_knn_gt_i = sorted_indexes[sj];
