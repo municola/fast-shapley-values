@@ -141,6 +141,7 @@ void intro(int argc, char **argv, run_variables_t *run_variables){
 
     add_run_info(run_variables->runfile, "git_status", git_dirty);
     add_run_info(run_variables->runfile, "git_branch", GITBRANCH);
+    add_run_info(run_variables->runfile, "git_revision", GITREV);
     add_run_info(run_variables->runfile, "compiler", CC);
     add_run_info(run_variables->runfile, "compiler_flags", CFLAGS);
     add_run_info_raw(run_variables->runfile, "debug",
