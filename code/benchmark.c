@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdalign.h>
 #include <unistd.h>
 #include <assert.h>
 #include <time.h>
@@ -48,27 +50,36 @@ void init_context(context_t *ctx, int input_size){
     ctx->T = 640; // for eps = delta = 0.05 and K = 1
 
     // Allocate memory - Load data
+    // Note that AVX requires 32 byte alignment, that's why we replace
+    // calloc with aligned_alloc and memset
     if(ctx->x_trn) free(ctx->x_trn);
-    ctx->x_trn = calloc(ctx->size_x_trn * ctx->feature_len, sizeof(double));
+    ctx->x_trn = aligned_alloc(32, ctx->size_x_trn * ctx->feature_len * sizeof(double));
+    memset(ctx->x_trn, 0, ctx->size_x_trn * ctx->feature_len * sizeof(double));
 
     if(ctx->y_trn) free(ctx->y_trn);
-    ctx->y_trn = calloc(ctx->size_y_trn, sizeof(double));
+    ctx->y_trn = aligned_alloc(32, ctx->size_y_trn * sizeof(double));
+    memset(ctx->y_trn, 0, ctx->size_y_trn * sizeof(double));
     
     if(ctx->x_tst) free(ctx->x_tst);
-    ctx->x_tst = calloc(ctx->size_x_tst * ctx->feature_len, sizeof(double));
+    ctx->x_tst = aligned_alloc(32, ctx->size_x_tst * ctx->feature_len * sizeof(double));
+    memset(ctx->x_tst, 0, ctx->size_x_tst * ctx->feature_len * sizeof(double));
 
     if(ctx->y_tst) free(ctx->y_tst);
-    ctx->y_tst = calloc(ctx->size_y_tst, sizeof(double));
+    ctx->y_tst = aligned_alloc(32, ctx->size_y_tst * sizeof(double));
+    memset(ctx->y_tst, 0, ctx->size_y_tst * sizeof(double));
     
     if(ctx->x_test_knn_gt) free(ctx->x_test_knn_gt);
-    ctx->x_test_knn_gt = calloc(ctx->size_x_trn * ctx->size_x_tst, sizeof(int));
+    ctx->x_test_knn_gt = aligned_alloc(32, ctx->size_x_trn * ctx->size_x_tst * sizeof(int));
+    memset(ctx->x_test_knn_gt, 0, ctx->size_x_trn * ctx->size_x_tst * sizeof(int));
 
     if(ctx->sp_gt) free(ctx->sp_gt);
-    ctx->sp_gt = calloc(ctx->size_x_trn * ctx->size_x_tst, sizeof(double));
+    ctx->sp_gt = aligned_alloc(32, ctx->size_x_trn * ctx->size_x_tst * sizeof(double));
+    memset(ctx->sp_gt, 0, ctx->size_x_trn * ctx->size_x_tst * sizeof(double));
     
     // Allocate dist_gt and set global variable (needed for special compare func.!)
     if(ctx->dist_gt) free(ctx->dist_gt);
-    ctx->dist_gt = calloc(ctx->size_x_tst * ctx->size_x_trn, sizeof(double));
+    ctx->dist_gt = aligned_alloc(32, ctx->size_x_trn * ctx->size_x_tst * sizeof(double));
+    memset(ctx->dist_gt, 0, ctx->size_x_trn * ctx->size_x_tst * sizeof(double));
     dist_gt = ctx->dist_gt;
 
     read_bin_file_known_size(ctx->x_trn, "../data/features/cifar10/train_features.bin", ctx->size_x_trn*ctx->feature_len);
