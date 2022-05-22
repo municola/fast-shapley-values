@@ -21,7 +21,7 @@ void init_context(context_t *ctx, int input_size){
     ctx->input_size = input_size;
 
     // must be divisible by the blocksize B
-    ctx->feature_len = 1200;
+    ctx->feature_len = 2048;
     // ctx->num_test_samples = 500;
 
     assert(ctx->input_size % 2 ==0);
@@ -38,11 +38,11 @@ void init_context(context_t *ctx, int input_size){
     // KNN result
     ctx->x_test_knn_gt = NULL;
 
-    ctx->size_x_tst = input_size / 2;
-    ctx->size_y_tst = input_size / 2;
+    ctx->size_x_tst = input_size;
+    ctx->size_y_tst = input_size;
 
-    ctx->size_x_trn = input_size / 2;
-    ctx->size_y_trn = input_size / 2 ;
+    ctx->size_x_trn = input_size;
+    ctx->size_y_trn = input_size;
 
     ctx->K = 1;
     
