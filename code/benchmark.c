@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <time.h>
+#include <math.h>
 
 #include "tsc_x86.h"
 #include "utils.h"
@@ -46,7 +47,7 @@ void init_context(context_t *ctx, int input_size){
     ctx->K = 1;
     
     // T := 1/(K*eps)^2 * log(2K/delta)
-    ctx->T = 640; // for eps = delta = 0.05 and K = 1
+    ctx->T = log(40*ctx->K) / (ctx->K*ctx->K*0.05*0.05);
 
     // Allocate memory - Load data
     if(ctx->x_trn) free(ctx->x_trn);
