@@ -90,7 +90,7 @@ bool approx_correct(run_variables_t *run_variables, void *context) {
     debug_print("\nShapley Correctness: Error < EPS: %f < %f\n\n", error_shapley, EPS);
 
     double error = error_knn + error_shapley;
-    return error < 100* EPS;
+    return error < 100*EPS;
 }
 
 // bool exact_shapley_correct(run_variables_t *run_variables, void *context) {

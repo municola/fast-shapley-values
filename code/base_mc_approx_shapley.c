@@ -72,24 +72,22 @@ static inline uint32_t pcg32_random_bounded_divisionless_with_slight_bias(uint32
 
 // randomly permutes an array [1, ..., n] in place
 void fisher_yates_shuffle(int* seq, int n) {
-    for (int i = 0; i < n; i++) {
-        seq[i] = i;
-    }
     for (int i = n-1; i>=0; i--) {
         int j = rand() % (i+1);
         int temp = seq[i];
         seq[i] = seq[j];
         seq[j] = temp;
     }
+
+    for (int i = 0; i < n / 2; i++) {
+        swap(&seq[i], &seq[n-1-i]);
+    }
 }
 
 // randomly permutes an array [1, ..., n] in place
 static inline void fisher_yates_shuffle_fast(int* seq, int n) {
-    for (int i = 0; i < n; i++) {
-        seq[i] = i;
-    }
     for (int i = n-1; i>=0; i--) {
-        int j = pcg32_random_bounded_divisionless_with_slight_bias(i+1);
+        int j = rand() % (i+1);
         int temp = seq[i];
         int val = seq[j];
         seq[i] = val;
@@ -112,7 +110,9 @@ void compute_shapley_using_improved_mc_approach(void *context) {
     
         // approximate by using T different random permutations pi
         for (int t = 0; t < ctx->T; t++) {
-
+            for (int p = 0; p < size_x_trn; p++) {
+                pi[p] = p;
+            }
             fisher_yates_shuffle(pi, size_x_trn);
 
             int maxheap[K];
@@ -201,7 +201,9 @@ void compute_shapley_using_improved_mc_approach_K1(void *context) {
     
         // approximate by using T different random permutations pi
         for (int t = 0; t < ctx->T; t++) {
-
+            for (int p = 0; p < ctx->size_x_trn; p++) {
+                pi[p] = p;
+            }
             fisher_yates_shuffle(pi, ctx->size_x_trn);
 
             // nearest neighbor in set of training points pi_0 to pi_i
@@ -272,7 +274,9 @@ void opt1_compute_shapley_using_improved_mc_approach(void *context) {
     
         // approximate by using T different random permutations pi
         for (int t = 0; t < T; t++) {
-
+            for (int p = 0; p < size_x_trn; p++) {
+                pi[p] = p;
+            }
             fisher_yates_shuffle(pi, size_x_trn);
             int maxheap[K];
             size = 0;
@@ -336,6 +340,7 @@ void opt1_compute_shapley_using_improved_mc_approach(void *context) {
     return;
 }
 
+// Fast rand
 void opt2_compute_shapley_using_improved_mc_approach(void *context) {
     context_t *ctx = (context_t *)context;
 
@@ -351,6 +356,10 @@ void opt2_compute_shapley_using_improved_mc_approach(void *context) {
     
         // approximate by using T different random permutations pi
         for (int t = 0; t < ctx->T; t++) {
+            
+            for (int p = 0; p < size_x_trn; p++) {
+                pi[p] = p;
+            }
 
             fisher_yates_shuffle_fast(pi, size_x_trn);
 
@@ -423,6 +432,7 @@ void opt2_compute_shapley_using_improved_mc_approach(void *context) {
     return;
 }
 
+// Accumulators, Pre computing ecg
 void opt3_compute_shapley_using_improved_mc_approach(void *context) {
     context_t *ctx = (context_t *)context;
     const int K = (int)ctx->K;
@@ -443,14 +453,14 @@ void opt3_compute_shapley_using_improved_mc_approach(void *context) {
         double y_tst_j = y_tst[j];
         for (int t = 0; t < T; t++) {
 
-            for (uint32_t i = 0; i < size_x_trn; i++) {
+            for (int i = 0; i < size_x_trn; i++) {
                 pi[i] = i;
             }
 
-            for (uint32_t i = size_x_trn-1; i>=0; i--) {
-                uint32_t j = pcg32_random_bounded_divisionless_with_slight_bias(i+1);
-                uint32_t temp = pi[i];
-                uint32_t val = pi[j];
+            for (int i = size_x_trn-1; i>=0; i--) {
+                int j = pcg32_random_bounded_divisionless_with_slight_bias(i+1);
+                int temp = pi[i];
+                int val = pi[j];
                 pi[i] = val;
                 pi[j] = temp;
             }
@@ -556,6 +566,7 @@ void opt3_compute_shapley_using_improved_mc_approach(void *context) {
     return;
 }
 
+// Improved spatial locality for PHI (only good for K = 1)
 void opt4_compute_shapley_using_improved_mc_approach(void *context) {
     context_t *ctx = (context_t *)context;
     const int K = (int)ctx->K;
@@ -872,7 +883,7 @@ void opt5_compute_shapley_using_improved_mc_approach(void *context) {
     return;
 }
 
-void current_compute_shapley_using_improved_mc_approach(void *context) {
+void opt6_compute_shapley_using_improved_mc_approach(void *context) {
     context_t *ctx = (context_t *)context;
     const int K = (int)ctx->K;
     const int T = (int)ctx->T;
@@ -913,6 +924,7 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
 
             int maxheap[K];
             size = 1;
+            double size_sqr_plus_size = 2;
             int i;
             int pi_0 = pi[0];
 
@@ -928,10 +940,10 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
                 for (int k = 0; k < size; k++) {
                     sum += trn_tst[x_test_knn_gt[j*size_x_trn+maxheap[k]]];
                 }
-                phi[pi_i*T+t] = (size*(trn_tst[pi_i]) - sum) / (double)(size*(size+1));
-
+                phi[pi_i*T+t] = (size*(trn_tst[pi_i]) - sum) / size_sqr_plus_size;
                 int index = size;
                 maxheap[index] = dist_new;
+                size_sqr_plus_size += 2 + (size << 1);
                 size += 1;
 
                 int parent = (index-1) >> 1;
@@ -1024,6 +1036,423 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
     free(phi);
     free(pi);
     free(trn_tst);
+
+    return;
+}
+
+// reduced memory accesses by keeping track of left and right children in heap and their indexes (only K >= 3)
+void opt7_compute_shapley_using_improved_mc_approach(void *context) {
+    context_t *ctx = (context_t *)context;
+    const int K = (int)ctx->K;
+    const int T = (int)ctx->T;
+    const size_t size_x_trn = ctx->size_x_trn;
+    const size_t size_x_tst = ctx->size_x_tst;
+    double* y_trn = ctx->y_trn;
+    double* y_tst = ctx->y_tst;
+    double* sp_gt = ctx->sp_gt;
+    int* x_test_knn_r_gt = ctx->x_test_knn_r_gt;
+    int* x_test_knn_gt = ctx->x_test_knn_gt;
+    double* phi = (double*)malloc(size_x_trn * T * sizeof(double));
+    int* seq = (int*)malloc(size_x_trn * sizeof(int));
+    int* pi = (int*)malloc(size_x_trn * sizeof(int));
+    bool* trn_tst = (bool*)calloc(size_x_trn * size_x_tst, sizeof(bool));
+    const double ONE_OVER_K = 1 / ctx->K;
+    const double ONE_OVER_T = 1 / (double)T;
+    int maxheap[K];
+
+    assert(K >= 3);
+
+    __m256i ind = _mm256_set_epi32(7, 6, 5, 4, 3, 2, 1, 0);
+    __m256i incr = _mm256_set1_epi32(8);
+    int p = 0;
+    for (; p < size_x_trn-8; p+=8) {
+        _mm256_storeu_si256(seq+p, ind);
+        ind = _mm256_add_epi32(ind, incr);
+    }
+
+    for (; p < size_x_trn; p++) {
+        seq[p] = p;
+    }
+
+    for (int j = 0; j < size_x_tst; j++) {
+        double y_tst_j = y_tst[j];
+
+        // precompute comparison between training and test labels (will each be needed T times)
+        for (int i = 0; i < size_x_trn; i++) {
+            trn_tst[j*size_x_trn+i] = y_trn[i] == y_tst_j;   
+        }
+
+        for (int t = 0; t < T; t++) {
+            
+            memcpy(pi, seq, size_x_trn * sizeof(int));
+
+            size = 1;
+            double size_sqr_plus_size = 2;
+            int i;
+
+           // int pi_0 = rand() % size_x_trn;
+            int pi_0 = pcg32_random_bounded_divisionless_with_slight_bias(size_x_trn);
+            pi[pi_0] = size_x_trn-1;
+            phi[t*size_x_trn+pi_0] = trn_tst[j*size_x_trn+pi_0];
+            maxheap[0] = x_test_knn_r_gt[j*size_x_trn+pi_0];
+
+            for (i = 1; i < K; i++) {
+                //int next = rand() % (size_x_trn - i);
+                int next = pcg32_random_bounded_divisionless_with_slight_bias(size_x_trn - i);
+                int pi_i = pi[next];
+                pi[next] = pi[size_x_trn - i - 1];
+
+                int dist_new = x_test_knn_r_gt[j*size_x_trn+pi_i];
+
+                int sum = 0;
+                for (int k = 0; k < size; k++) {
+                    sum += trn_tst[j*size_x_trn+x_test_knn_gt[j*size_x_trn+maxheap[k]]];
+                }
+                phi[t*size_x_trn+pi_i] = (size*(trn_tst[j*size_x_trn+pi_i]) - sum) / size_sqr_plus_size;
+                int index = size;
+                maxheap[index] = dist_new;
+                size_sqr_plus_size += 2 + (size << 1);
+                size += 1;
+
+                int parent = (index-1) >> 1;
+                int parent_val = maxheap[parent];
+
+                while(index != 0 && parent_val < dist_new) {
+                    maxheap[parent] = dist_new;
+                    maxheap[index] = parent_val;
+                    index = parent;
+                    parent = (index-1) >> 1;
+                    parent_val = maxheap[parent];
+                }
+            }
+
+            int max_dist = maxheap[0];
+            int left_dist = maxheap[1];
+            int right_dist = maxheap[2];
+            int max_index = x_test_knn_gt[j*size_x_trn+max_dist];
+            int left_index = x_test_knn_gt[j*size_x_trn+left_dist];
+            int right_index = x_test_knn_gt[j*size_x_trn+right_dist];
+
+            for (; i < size_x_trn; i++) {
+                //int next = rand() % (size_x_trn - i);
+                int next = pcg32_random_bounded_divisionless_with_slight_bias(size_x_trn - i);
+                int pi_i = pi[next];
+                pi[next] = pi[size_x_trn - i - 1];
+                int dist_new = x_test_knn_r_gt[j*size_x_trn+pi_i];
+
+                if (dist_new < max_dist) {
+                    // Calculate PHI
+                    int v_incl_i = trn_tst[j*size_x_trn+pi_i];
+                    int v_excl_i = trn_tst[j*size_x_trn+max_index];
+
+                    // Inlined Heapify
+                    if (dist_new < left_dist || dist_new < right_dist) {
+                        if (left_dist > right_dist) {
+                            max_dist = left_dist;
+                            max_index = left_index;
+                            // Heapify Left
+                            int left = 3 < size ? maxheap[3] : -1;
+                            int right = 4 < size ? maxheap[4] : -1;
+                            if (dist_new < left || dist_new < right) {
+                                if (left > right) {
+                                    left_dist = left;
+                                    left_index = x_test_knn_gt[j*size_x_trn+left];
+                                    maxheap[3] = dist_new;
+                                    heapify(maxheap, 3);
+                                } else {
+                                    left_dist = right;
+                                    left_index = x_test_knn_gt[j*size_x_trn+right];
+                                    maxheap[4] = dist_new;
+                                    heapify(maxheap, 4);
+                                }
+                            } else {
+                                left_dist = dist_new;
+                                left_index = pi_i;
+                            }
+                        } else {
+                            max_dist = right_dist;
+                            max_index = right_index;
+                            // Heapify Right
+                            int left = 5 < size ? maxheap[5] : -1;
+                            int right = 6 < size ? maxheap[6] : -1;
+                            if (dist_new < left || dist_new < right) {
+                                if (left > right) {
+                                    right_dist = left;
+                                    right_index = x_test_knn_gt[j*size_x_trn+left];
+                                    maxheap[5] = dist_new;
+                                    heapify(maxheap, 5);
+                                } else {
+                                    right_dist = right;
+                                    right_index = x_test_knn_gt[j*size_x_trn+right];
+                                    maxheap[6] = dist_new;
+                                    heapify(maxheap, 6);
+                                }
+                            } else {
+                                right_dist = dist_new;
+                                right_index = pi_i;
+                            }
+                        }
+                    } else {
+                        max_dist = dist_new;
+                        max_index = pi_i;
+                    }
+                    phi[t*size_x_trn+pi_i] = (v_incl_i - v_excl_i) * ONE_OVER_K;          
+                } else {
+                    phi[t*size_x_trn+pi_i] = 0;
+                }
+            }
+        }
+    
+        for (int i = 0; i < size_x_trn; i++) {
+            double acc0 = 0;
+            double acc1 = 0;
+            double acc2 = 0;
+            double acc3 = 0;
+            double acc4 = 0;
+            double acc5 = 0;
+            double acc6 = 0;
+            double acc7 = 0;
+            int t;
+            for (t = 0; t < T-8; t+=8) {
+                acc0 += phi[t*size_x_trn+i];
+                acc1 += phi[(t+1)*size_x_trn+i];
+                acc2 += phi[(t+2)*size_x_trn+i];
+                acc3 += phi[(t+3)*size_x_trn+i];
+                acc4 += phi[(t+4)*size_x_trn+i];
+                acc5 += phi[(t+5)*size_x_trn+i];
+                acc6 += phi[(t+6)*size_x_trn+i];
+                acc7 += phi[(t+7)*size_x_trn+i];
+            }
+
+            for (; t < T; t++) {
+                acc0 += phi[t*size_x_trn+i];
+            }
+
+            sp_gt[j*size_x_trn+i] = (((acc0+acc1)+(acc2+acc3))+((acc4+acc5)+(acc6+acc7))) * ONE_OVER_T;
+        }
+    }
+
+    #ifdef DEBUG
+    for (int i = 0; i < size_x_trn; i++) {
+        double sum = 0;
+        for (int j = 0; j < size_x_tst; j++) {
+            sum += ctx->sp_gt[j*size_x_trn+i];
+        }
+        debug_print("SV of training point %d is %f\n", i, sum / size_x_tst);
+    }
+    #endif
+
+    free(phi);
+    free(pi);
+    free(seq);
+
+    return;
+}
+
+void current_compute_shapley_using_improved_mc_approach(void *context) {
+    context_t *ctx = (context_t *)context;
+    const int K = (int)ctx->K;
+    const int T = (int)ctx->T;
+    const size_t size_x_trn = ctx->size_x_trn;
+    const size_t size_x_tst = ctx->size_x_tst;
+    double* y_trn = ctx->y_trn;
+    double* y_tst = ctx->y_tst;
+    double* sp_gt = ctx->sp_gt;
+    int* x_test_knn_r_gt = ctx->x_test_knn_r_gt;
+    int* x_test_knn_gt = ctx->x_test_knn_gt;
+    double* phi = (double*)malloc(size_x_trn * T * sizeof(double));
+    int* seq = (int*)malloc(size_x_trn * sizeof(int));
+    int* pi = (int*)malloc(size_x_trn * sizeof(int));
+    bool* trn_tst = (bool*)calloc(size_x_trn * size_x_tst, sizeof(bool));
+    const double ONE_OVER_K = 1 / ctx->K;
+    const double ONE_OVER_T = 1 / (double)T;
+    int maxheap[K];
+
+    assert(K >= 3);
+
+    __m256i ind = _mm256_set_epi32(7, 6, 5, 4, 3, 2, 1, 0);
+    __m256i incr = _mm256_set1_epi32(8);
+    int p = 0;
+    for (; p < size_x_trn-8; p+=8) {
+        _mm256_storeu_si256(seq+p, ind);
+        ind = _mm256_add_epi32(ind, incr);
+    }
+
+    for (; p < size_x_trn; p++) {
+        seq[p] = p;
+    }
+
+    for (int j = 0; j < size_x_tst; j++) {
+        double y_tst_j = y_tst[j];
+
+        for (int i = 0; i < size_x_trn; i++) {
+            trn_tst[j*size_x_trn+i] = y_trn[i] == y_tst_j;   
+        }
+
+        for (int t = 0; t < T; t++) {
+            
+            memcpy(pi, seq, size_x_trn * sizeof(int));
+
+            size = 1;
+            double size_sqr_plus_size = 2;
+            int i;
+
+           // int pi_0 = rand() % size_x_trn;
+            int pi_0 = pcg32_random_bounded_divisionless_with_slight_bias(size_x_trn);
+            pi[pi_0] = size_x_trn-1;
+            phi[t*size_x_trn+pi_0] = trn_tst[j*size_x_trn+pi_0];
+            maxheap[0] = x_test_knn_r_gt[j*size_x_trn+pi_0];
+
+            for (i = 1; i < K; i++) {
+                //int next = rand() % (size_x_trn - i);
+                int next = pcg32_random_bounded_divisionless_with_slight_bias(size_x_trn - i);
+                int pi_i = pi[next];
+                pi[next] = pi[size_x_trn - i - 1];
+
+                int dist_new = x_test_knn_r_gt[j*size_x_trn+pi_i];
+
+                int sum = 0;
+                for (int k = 0; k < size; k++) {
+                    sum += trn_tst[j*size_x_trn+x_test_knn_gt[j*size_x_trn+maxheap[k]]];
+                }
+                phi[t*size_x_trn+pi_i] = (size*(trn_tst[j*size_x_trn+pi_i]) - sum) / size_sqr_plus_size;
+                int index = size;
+                maxheap[index] = dist_new;
+                size_sqr_plus_size += 2 + (size << 1);
+                size += 1;
+
+                int parent = (index-1) >> 1;
+                int parent_val = maxheap[parent];
+
+                while(index != 0 && parent_val < dist_new) {
+                    maxheap[parent] = dist_new;
+                    maxheap[index] = parent_val;
+                    index = parent;
+                    parent = (index-1) >> 1;
+                    parent_val = maxheap[parent];
+                }
+            }
+
+            int max_dist = maxheap[0];
+            int left_dist = maxheap[1];
+            int right_dist = maxheap[2];
+            int max_index = x_test_knn_gt[j*size_x_trn+max_dist];
+            int left_index = x_test_knn_gt[j*size_x_trn+left_dist];
+            int right_index = x_test_knn_gt[j*size_x_trn+right_dist];
+
+            for (; i < size_x_trn; i++) {
+                //int next = rand() % (size_x_trn - i);
+                int next = pcg32_random_bounded_divisionless_with_slight_bias(size_x_trn - i);
+                int pi_i = pi[next];
+                pi[next] = pi[size_x_trn - i - 1];
+                int dist_new = x_test_knn_r_gt[j*size_x_trn+pi_i];
+
+                if (dist_new < max_dist) {
+                    // Calculate PHI
+                    int v_incl_i = trn_tst[j*size_x_trn+pi_i];
+                    int v_excl_i = trn_tst[j*size_x_trn+max_index];
+
+                    phi[t*size_x_trn+pi_i] = (v_incl_i - v_excl_i) * ONE_OVER_K;
+
+                    // Heapify
+                    if (dist_new < left_dist || dist_new < right_dist) {
+                        if (left_dist > right_dist) {
+                            max_dist = left_dist;
+                            max_index = left_index;
+                            // Heapify Left
+                            int left = 3 < size ? maxheap[3] : -1;
+                            int right = 4 < size ? maxheap[4] : -1;
+                            if (dist_new < left || dist_new < right) {
+                                if (left > right) {
+                                    left_dist = left;
+                                    left_index = x_test_knn_gt[j*size_x_trn+left];
+                                    maxheap[3] = dist_new;
+                                    heapify(maxheap, 3);
+                                } else {
+                                    left_dist = right;
+                                    left_index = x_test_knn_gt[j*size_x_trn+right];
+                                    maxheap[4] = dist_new;
+                                    heapify(maxheap, 4);
+                                }
+                            } else {
+                                left_dist = dist_new;
+                                left_index = pi_i;
+                            }
+                        } else {
+                            max_dist = right_dist;
+                            max_index = right_index;
+                            // Heapify Right
+                            int left = 5 < size ? maxheap[5] : -1;
+                            int right = 6 < size ? maxheap[6] : -1;
+                            if (dist_new < left || dist_new < right) {
+                                if (left > right) {
+                                    right_dist = left;
+                                    right_index = x_test_knn_gt[j*size_x_trn+left];
+                                    maxheap[5] = dist_new;
+                                    heapify(maxheap, 5);
+                                } else {
+                                    right_dist = right;
+                                    right_index = x_test_knn_gt[j*size_x_trn+right];
+                                    maxheap[6] = dist_new;
+                                    heapify(maxheap, 6);
+                                }
+                            } else {
+                                right_dist = dist_new;
+                                right_index = pi_i;
+                            }
+                        }
+                    } else {
+                        max_dist = dist_new;
+                        max_index = pi_i;
+                    }              
+                } else {
+                    phi[t*size_x_trn+pi_i] = 0;
+                }
+            }
+        }
+    
+        for (int i = 0; i < size_x_trn; i++) {
+            double acc0 = 0;
+            double acc1 = 0;
+            double acc2 = 0;
+            double acc3 = 0;
+            double acc4 = 0;
+            double acc5 = 0;
+            double acc6 = 0;
+            double acc7 = 0;
+            int t;
+            for (t = 0; t < T-8; t+=8) {
+                acc0 += phi[t*size_x_trn+i];
+                acc1 += phi[(t+1)*size_x_trn+i];
+                acc2 += phi[(t+2)*size_x_trn+i];
+                acc3 += phi[(t+3)*size_x_trn+i];
+                acc4 += phi[(t+4)*size_x_trn+i];
+                acc5 += phi[(t+5)*size_x_trn+i];
+                acc6 += phi[(t+6)*size_x_trn+i];
+                acc7 += phi[(t+7)*size_x_trn+i];
+            }
+
+            for (; t < T; t++) {
+                acc0 += phi[t*size_x_trn+i];
+            }
+
+            sp_gt[j*size_x_trn+i] = (((acc0+acc1)+(acc2+acc3))+((acc4+acc5)+(acc6+acc7))) * ONE_OVER_T;
+        }
+    }
+
+    #ifdef DEBUG
+    for (int i = 0; i < size_x_trn; i++) {
+        double sum = 0;
+        for (int j = 0; j < size_x_tst; j++) {
+            sum += ctx->sp_gt[j*size_x_trn+i];
+        }
+        debug_print("SV of training point %d is %f\n", i, sum / size_x_tst);
+    }
+    #endif
+
+    free(phi);
+    free(pi);
+    free(seq);
 
     return;
 }
