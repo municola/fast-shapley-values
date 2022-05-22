@@ -79,7 +79,8 @@ bool approx_correct(run_variables_t *run_variables, void *context) {
 
     init_context(test_ctx2, ctx->input_size);
     // replace with whatever function of interest
-    get_true_approx_KNN((void*)test_ctx2);
+    knn__approx_opt5((void*)test_ctx2);
+    srand(0);
     current_compute_shapley_using_improved_mc_approach((void*)test_ctx2);
 
     double error_knn = nrm_sqr_diff_int(ctx->x_test_knn_gt, test_ctx2->x_test_knn_gt, ctx->size_x_trn*ctx->size_x_tst);

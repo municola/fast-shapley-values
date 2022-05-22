@@ -44,7 +44,7 @@ void init_context(context_t *ctx, int input_size){
     ctx->size_x_trn = input_size / 2;
     ctx->size_y_trn = input_size / 2 ;
 
-    ctx->K = 1;
+    ctx->K = 6;
     
     // T := 1/(K*eps)^2 * log(2K/delta)
     ctx->T = log(40*ctx->K) / (ctx->K*ctx->K*0.05*0.05);
