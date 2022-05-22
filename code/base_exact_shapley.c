@@ -10,6 +10,7 @@
 #include "utils.h"
 #include "benchmark.h"
 #include "knn_exact.h"
+#include "base_exact_shapley.h"
 #include "combined_exact_knn_shapley.h"
 
 
