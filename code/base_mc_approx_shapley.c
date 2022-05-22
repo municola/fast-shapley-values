@@ -707,19 +707,16 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
     for (int j = 0; j < size_x_tst; j++) {
         double y_tst_j = y_tst[j];
         for (int t = 0; t < T; t++) {
-            /*
             __m256i ind = _mm256_set_epi32(7, 6, 5, 4, 3, 2, 1, 0);
-            __m256i incr = _mm256_set1_epi32(0);
-            for (int i = 0; i < size_x_trn; i+=8) {
-                _mm256_store_epi32(pi, ind);
+            __m256i incr = _mm256_set1_epi32(8);
+            int p = 0;
+            for (; p < size_x_trn-8; p+=8) {
+                _mm256_storeu_si256(pi+p, ind);
                 ind = _mm256_add_epi32(ind, incr);
             }
-            printf("blablalj aflk jlkdsj ");
-            printArray(pi, size_x_trn);
-            */
 
-            for (int i = 0; i < size_x_trn; i++) {
-                pi[i] = i;
+            for (; p < size_x_trn; p++) {
+                pi[p] = p;
             }
 
             for (int i = size_x_trn-1; i>=0; i--) {
