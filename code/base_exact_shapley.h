@@ -18,3 +18,4 @@ void single_unweighted_knn_class_shapley_opt5(void *context);
 void single_unweighted_knn_class_shapley_opt6(void *context);
 void single_unweighted_knn_class_shapley_opt7(void *context);
 void single_unweighted_knn_class_shapley_opt8(void *context);
+void single_unweighted_knn_class_shapley_opt12(void *context);

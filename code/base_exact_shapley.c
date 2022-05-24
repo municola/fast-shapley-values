@@ -317,11 +317,11 @@ void single_unweighted_knn_class_shapley_opt4(void *context_ptr){
             ind_diff[i] = ind_ip0 - ind_ip1;
         }
 
-        printf("Opt: j:%d ind_diff:\n", j);
-        for(int i=0; i<context->size_x_trn-1; i++){
-            printf("%d ", ind_diff[i]);
-        }
-        printf("\n");
+        // printf("Opt: j:%d ind_diff:\n", j);
+        // for(int i=0; i<context->size_x_trn-1; i++){
+        //     printf("%d ", ind_diff[i]);
+        // }
+        // printf("\n");
 
         // Actual Loop at line 4
         for (int i=size_x_trn-2; i>-1; i--) {
@@ -849,8 +849,13 @@ void single_unweighted_knn_class_shapley_opt11(void *context_ptr){
 }
 
 
-void single_unweighted_knn_class_shapley_opt(void *context_ptr){
+void single_unweighted_knn_class_shapley_opt12(void *context_ptr){
     // opt12: based on opt3, unroll j loop
+    // By viewing assembly it becomes visible that ind_sub arrays are still optimized out
+    // However, the compiler fails to use avx instructions and does the work 4 times.
+    // 4 x sub, 4 x mul, 4 x add (no FMA)
+
+    //pragma ivdep at every loop does no difference either
     context_t *context = (context_t*)context_ptr;
     size_t size_x_trn = context->size_x_trn;
     int* x_test_knn_gt = context->x_test_knn_gt;
@@ -860,8 +865,114 @@ void single_unweighted_knn_class_shapley_opt(void *context_ptr){
     double K = context->K;
     double inv_size_x_trn = 1.0/size_x_trn;
     double* Kidx_const = (double*)aligned_alloc(32, (size_x_trn-1) * sizeof(double));
-    double* ind_sub = (double*)aligned_alloc(32, (size_x_trn) * sizeof(double));
+    double* ind_sub0 = (double*)aligned_alloc(32, (size_x_trn) * sizeof(double));
+    double* ind_sub1 = (double*)aligned_alloc(32, (size_x_trn) * sizeof(double));
+    double* ind_sub2 = (double*)aligned_alloc(32, (size_x_trn) * sizeof(double));
+    double* ind_sub3 = (double*)aligned_alloc(32, (size_x_trn) * sizeof(double));
+
+    printf("Correct OPT 12\n");
+    // Precompute the constant part from Line 5 in the Shapley algorithm
+    for (int i=1; i<size_x_trn; i++) {
+        Kidx_const[i-1] = 1.0/i;
+    }
+    for (int i=0; i<K; i++){
+        Kidx_const[i] = 1.0/K;
+    }
+    for(int j=0; j<context->size_x_tst;j+=4) {
+        // Line 3 of Algo 1
+        int offset0 = x_test_knn_gt[(j+0)*size_x_trn+size_x_trn-1];
+        int offset1 = x_test_knn_gt[(j+1)*size_x_trn+size_x_trn-1];
+        int offset2 = x_test_knn_gt[(j+2)*size_x_trn+size_x_trn-1];
+        int offset3 = x_test_knn_gt[(j+3)*size_x_trn+size_x_trn-1];
+
+        double label_test0 = y_tst[j+0]; // THIS NEEDS TO BE A DOUBLE (otherwise notable performance hit)
+        double label_test1 = y_tst[j+1]; // THIS NEEDS TO BE A DOUBLE (otherwise notable performance hit)
+        double label_test2 = y_tst[j+2]; // THIS NEEDS TO BE A DOUBLE (otherwise notable performance hit)
+        double label_test3 = y_tst[j+3]; // THIS NEEDS TO BE A DOUBLE (otherwise notable performance hit)
+
+        // printf("correct: j:%d-> y_trn0:%f y_trn1:%f y_trn2:%f y_trn3:%f\n", j, y_trn[offset0], y_trn[offset1], y_trn[offset2], y_trn[offset3]);
+        // printf("correct: j:%d-> label0:%f label1:%f label2:%f label3:%f\n", j, label_test0, label_test1, label_test2, label_test3);
+        
+        // These need to be two expressions, if you set the array directly, you take a performance hit  
+        double tmp0 = (y_trn[offset0] == label_test0) ? 1.0 : 0.0;
+        double tmp1 = (y_trn[offset1] == label_test1) ? 1.0 : 0.0;
+        double tmp2 = (y_trn[offset2] == label_test2) ? 1.0 : 0.0;
+        double tmp3 = (y_trn[offset3] == label_test3) ? 1.0 : 0.0;
+
+        // printf("correct: j:%d-> tmp0:%f tmp1:%f tmp2:%f tmp3:%f\n", j, tmp0, tmp1, tmp2, tmp3);
+
+        double s_j_alpha_i_plus_10 = tmp0 * inv_size_x_trn;
+        double s_j_alpha_i_plus_11 = tmp1 * inv_size_x_trn;
+        double s_j_alpha_i_plus_12 = tmp2 * inv_size_x_trn;
+        double s_j_alpha_i_plus_13 = tmp3 * inv_size_x_trn;
+
+        sp_gt[(j+0)*size_x_trn + offset0] = s_j_alpha_i_plus_10; 
+        sp_gt[(j+1)*size_x_trn + offset1] = s_j_alpha_i_plus_11; 
+        sp_gt[(j+2)*size_x_trn + offset2] = s_j_alpha_i_plus_12; 
+        sp_gt[(j+3)*size_x_trn + offset3] = s_j_alpha_i_plus_13; 
+
+        // Precompute the Indicator subtraction
+        for (int i=0; i<size_x_trn; i++) {
+            ind_sub0[i] = (y_trn[x_test_knn_gt[(j+0)*size_x_trn+i]] == label_test0) ? 1.0 : 0.0;
+            ind_sub1[i] = (y_trn[x_test_knn_gt[(j+1)*size_x_trn+i]] == label_test1) ? 1.0 : 0.0;
+            ind_sub2[i] = (y_trn[x_test_knn_gt[(j+2)*size_x_trn+i]] == label_test2) ? 1.0 : 0.0;
+            ind_sub3[i] = (y_trn[x_test_knn_gt[(j+3)*size_x_trn+i]] == label_test3) ? 1.0 : 0.0;
+
+            // printf("correct: j:%d-> ind_sub0:%f ind_sub1:%f ind_sub2:%f ind_sub3:%f\n", j, ind_sub0[i], ind_sub1[i], ind_sub2[i], ind_sub3[i]);
+        }
+
+
+        // Actual Loop at line 4
+        for (int i=size_x_trn-2; i>-1; i--) {
+            int difference0 = ind_sub0[i] - ind_sub0[i+1];
+            int difference1 = ind_sub1[i] - ind_sub1[i+1];
+            int difference2 = ind_sub2[i] - ind_sub2[i+1];
+            int difference3 = ind_sub3[i] - ind_sub3[i+1];
+            // printf("correct: j:%d-> difference0:%d difference1:%d difference2:%d difference3:%d\n", j, difference0, difference1, difference2, difference3);
+
+            s_j_alpha_i_plus_10 += (difference0 * Kidx_const[i]);
+            s_j_alpha_i_plus_11 += (difference1 * Kidx_const[i]);
+            s_j_alpha_i_plus_12 += (difference2 * Kidx_const[i]);
+            s_j_alpha_i_plus_13 += (difference3 * Kidx_const[i]);
+
+            // printf("correct: j:%d-> s_j_alpha_i_plus_10:%f s_j_alpha_i_plus_11:%f s_j_alpha_i_plus_12:%f s_j_alpha_i_plus_13:%f\n", j, s_j_alpha_i_plus_10, s_j_alpha_i_plus_11, s_j_alpha_i_plus_12, s_j_alpha_i_plus_13);
+
+            sp_gt[(j+0)*size_x_trn + x_test_knn_gt[(j+0)*size_x_trn+i]] = s_j_alpha_i_plus_10;  
+            sp_gt[(j+1)*size_x_trn + x_test_knn_gt[(j+1)*size_x_trn+i]] = s_j_alpha_i_plus_11;  
+            sp_gt[(j+2)*size_x_trn + x_test_knn_gt[(j+2)*size_x_trn+i]] = s_j_alpha_i_plus_12;  
+            sp_gt[(j+3)*size_x_trn + x_test_knn_gt[(j+3)*size_x_trn+i]] = s_j_alpha_i_plus_13;  
+        }
+    }
+
+    //  print sp_gt array
+    // printf("Opt: Shapley sp_gt: input_size: %d \n", context->input_size);
+    // for(int i=0; i<context->size_x_tst; i++){
+    //     for(int j=0; j<context->size_x_trn; j++){
+    //         printf("%f ", context->sp_gt[i*context->size_x_trn + j]);
+    //     }
+    //     printf("\n");
+    // }
+
+}
+
+void single_unweighted_knn_class_shapley_opt(void *context_ptr){
+    // opt13: based on opt12, now vectorize 
+    context_t *context = (context_t*)context_ptr;
+    size_t size_x_trn = context->size_x_trn;
+    int* x_test_knn_gt = context->x_test_knn_gt;
+    double* y_trn = context->y_trn;
+    double* y_tst = context->y_tst;
+    double* sp_gt = context->sp_gt;
+    double K = context->K;
+    double inv_size_x_trn = 1.0/size_x_trn;
+    double* Kidx_const = (double*)aligned_alloc(32, (size_x_trn-1) * sizeof(double));
+    double* ind_sub = (double*)aligned_alloc(32, 4*(size_x_trn) * sizeof(double));
+    // double* ind_sub1 = (double*)aligned_alloc(32, (size_x_trn) * sizeof(double));
+    // double* ind_sub2 = (double*)aligned_alloc(32, (size_x_trn) * sizeof(double));
+    // double* ind_sub3 = (double*)aligned_alloc(32, (size_x_trn) * sizeof(double));
     __m256d ones = _mm256_set1_pd(1.0);
+
+    // printf("OPT\n");
 
     // Precompute the constant part from Line 5 in the Shapley algorithm
     for (int i=1; i<size_x_trn; i++) {
@@ -870,31 +981,87 @@ void single_unweighted_knn_class_shapley_opt(void *context_ptr){
     for (int i=0; i<K; i++){
         Kidx_const[i] = 1.0/K;
     }
-
-    for(int j=0; j<context->size_x_tst;j++) {
+    for(int j=0; j<context->size_x_tst;j+=4) {
         // Line 3 of Algo 1
-        int offset = x_test_knn_gt[j*size_x_trn+size_x_trn-1];
-        double label_test = y_tst[j]; // THIS NEEDS TO BE A DOUBLE (otherwise notable performance hit)
+        int offset0 = x_test_knn_gt[(j+0)*size_x_trn+size_x_trn-1];
+        int offset1 = x_test_knn_gt[(j+1)*size_x_trn+size_x_trn-1];
+        int offset2 = x_test_knn_gt[(j+2)*size_x_trn+size_x_trn-1];
+        int offset3 = x_test_knn_gt[(j+3)*size_x_trn+size_x_trn-1];
+
+
+        // double label_test0 = y_tst[j+0]; // THIS NEEDS TO BE A DOUBLE (otherwise notable performance hit)
+        // double label_test1 = y_tst[j+1]; // THIS NEEDS TO BE A DOUBLE (otherwise notable performance hit)
+        // double label_test2 = y_tst[j+2]; // THIS NEEDS TO BE A DOUBLE (otherwise notable performance hit)
+        // double label_test3 = y_tst[j+3]; // THIS NEEDS TO BE A DOUBLE (otherwise notable performance hit)
+        __m256d curr_y_trn = _mm256_set_pd(y_trn[offset3], y_trn[offset2], y_trn[offset1], y_trn[offset0]);
+        __m256d labels_test = _mm256_load_pd(y_tst+j);
+        // printf("Opt: j:%d-> y_trn0:%f y_trn1:%f y_trn2:%f y_trn3:%f\n", j, curr_y_trn[0], curr_y_trn[1], curr_y_trn[2], curr_y_trn[3]);
+        // printf("Opt: j:%d-> labels0:%f labels1:%f labels2:%f labels3:%f\n", j, labels_test[0], labels_test[1], labels_test[2], labels_test[3]);
+
+
         
         // These need to be two expressions, if you set the array directly, you take a performance hit  
-        double tmp = (y_trn[offset] == label_test) ? 1.0 : 0.0;
-        double s_j_alpha_i_plus_1 = tmp * inv_size_x_trn;
-        sp_gt[j*size_x_trn + offset] = s_j_alpha_i_plus_1;; 
+        // double tmp0 = (y_trn[offset0] == label_test0) ? 1.0 : 0.0;
+        // double tmp1 = (y_trn[offset1] == label_test1) ? 1.0 : 0.0;
+        // double tmp2 = (y_trn[offset2] == label_test2) ? 1.0 : 0.0;
+        // double tmp3 = (y_trn[offset3] == label_test3) ? 1.0 : 0.0;
+        // double s_j_alpha_i_plus_10 = tmp0 * inv_size_x_trn;
+        // double s_j_alpha_i_plus_11 = tmp1 * inv_size_x_trn;
+        // double s_j_alpha_i_plus_12 = tmp2 * inv_size_x_trn;
+        // double s_j_alpha_i_plus_13 = tmp3 * inv_size_x_trn;
+
+        __m256d mask_compare = _mm256_cmp_pd(curr_y_trn, labels_test, _CMP_EQ_OQ);
+        __m256d packed_indicator_variable_n = _mm256_and_pd(mask_compare, ones);
+        // printf("Opt: j:%d-> tmp0:%f tmp1:%f tmp2:%f tmp3:%f\n", j, packed_indicator_variable_n[0], packed_indicator_variable_n[1], packed_indicator_variable_n[2], packed_indicator_variable_n[3]);
+        __m256d packed_s_j_alpha_i_plus_1 = _mm256_mul_pd(packed_indicator_variable_n, _mm256_set1_pd(inv_size_x_trn));
+
+        sp_gt[(j+0)*size_x_trn + offset0] = packed_s_j_alpha_i_plus_1[0]; 
+        sp_gt[(j+1)*size_x_trn + offset1] = packed_s_j_alpha_i_plus_1[1]; 
+        sp_gt[(j+2)*size_x_trn + offset2] = packed_s_j_alpha_i_plus_1[2]; 
+        sp_gt[(j+3)*size_x_trn + offset3] = packed_s_j_alpha_i_plus_1[3]; 
 
         // Precompute the Indicator subtraction
         for (int i=0; i<size_x_trn; i++) {
-            ind_sub[i] = (y_trn[x_test_knn_gt[j*size_x_trn+i]] == label_test);
+            __m256d curr_y_train = _mm256_set_pd(y_trn[x_test_knn_gt[(j+3)*size_x_trn+i]], y_trn[x_test_knn_gt[(j+2)*size_x_trn+i]], y_trn[x_test_knn_gt[(j+1)*size_x_trn+i]], y_trn[x_test_knn_gt[(j+0)*size_x_trn+i]]);
+
+            __m256d mask_compare = _mm256_cmp_pd(curr_y_train, labels_test, _CMP_EQ_OQ);
+            __m256d packed_indicator_variable_n = _mm256_and_pd(mask_compare, ones);
+            _mm256_store_pd(ind_sub+(i*4), packed_indicator_variable_n);
+
+            // printf("Opt: j:%d-> ind_sub0:%f ind_sub1:%f ind_sub2:%f ind_sub3:%f\n", j, packed_indicator_variable_n[0], packed_indicator_variable_n[1], packed_indicator_variable_n[2], packed_indicator_variable_n[3]);
+
+            // ind_sub[i] = (y_trn[x_test_knn_gt[(j+0)*size_x_trn+i]] == labels_test[0]) ? 1.0 : 0.0;
+            // ind_sub[i] = (y_trn[x_test_knn_gt[(j+1)*size_x_trn+i]] == labels_test[1]) ? 1.0 : 0.0;
+            // ind_sub[i] = (y_trn[x_test_knn_gt[(j+2)*size_x_trn+i]] == labels_test[2]) ? 1.0 : 0.0;
+            // ind_sub[i] = (y_trn[x_test_knn_gt[(j+3)*size_x_trn+i]] == labels_test[3]) ? 1.0 : 0.0;
         }
 
         // Actual Loop at line 4
         for (int i=size_x_trn-2; i>-1; i--) {
-            int difference = ind_sub[i] - ind_sub[i+1];
-            s_j_alpha_i_plus_1 += (difference * Kidx_const[i]);
-            sp_gt[j*size_x_trn + x_test_knn_gt[j*size_x_trn+i]] = s_j_alpha_i_plus_1;;  
+            // int difference0 = ind_sub0[i] - ind_sub0[i+1];
+            // int difference1 = ind_sub1[i] - ind_sub1[i+1];
+            // int difference2 = ind_sub2[i] - ind_sub2[i+1];
+            // int difference3 = ind_sub3[i] - ind_sub3[i+1];
+            __m256d differences = _mm256_sub_pd(_mm256_load_pd(ind_sub+i*4), _mm256_load_pd(ind_sub+(i+1)*4));
+            // printf("Opt: Difference: %f %f %f %f\n", differences[0], differences[1], differences[2], differences[3]);
+
+            packed_s_j_alpha_i_plus_1 = _mm256_fmadd_pd(differences, _mm256_set1_pd(Kidx_const[i]), packed_s_j_alpha_i_plus_1);
+
+            // printf("Opt: j:%d-> s_j_alpha_i_plus_1:%f s_j_alpha_i_plus_2:%f s_j_alpha_i_plus_3:%f s_j_alpha_i_plus_4:%f\n", j, packed_s_j_alpha_i_plus_1[0], packed_s_j_alpha_i_plus_1[1], packed_s_j_alpha_i_plus_1[2], packed_s_j_alpha_i_plus_1[3]);
+
+            // s_j_alpha_i_plus_10 += (difference0 * Kidx_const[i]);
+            // s_j_alpha_i_plus_11 += (difference1 * Kidx_const[i]);
+            // s_j_alpha_i_plus_12 += (difference2 * Kidx_const[i]);
+            // s_j_alpha_i_plus_13 += (difference3 * Kidx_const[i]);
+
+            sp_gt[(j+0)*size_x_trn + x_test_knn_gt[(j+0)*size_x_trn+i]] = packed_s_j_alpha_i_plus_1[0];
+            sp_gt[(j+1)*size_x_trn + x_test_knn_gt[(j+1)*size_x_trn+i]] = packed_s_j_alpha_i_plus_1[1];  
+            sp_gt[(j+2)*size_x_trn + x_test_knn_gt[(j+2)*size_x_trn+i]] = packed_s_j_alpha_i_plus_1[2];
+            sp_gt[(j+3)*size_x_trn + x_test_knn_gt[(j+3)*size_x_trn+i]] = packed_s_j_alpha_i_plus_1[3];  
         }
     }
 
-     // print sp_gt array
+    //  print sp_gt array
     // printf("Opt: Shapley sp_gt: input_size: %d \n", context->input_size);
     // for(int i=0; i<context->size_x_tst; i++){
     //     for(int j=0; j<context->size_x_trn; j++){
