@@ -1,0 +1,52 @@
+{
+    "label" : "accumulators, function inlining etc (K=1)",
+    "git_status" : "modified",
+    "git_branch" : "master",
+    "compiler" : "gcc",
+    "compiler_flags" : "-Wall -lm -O3 ",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "turbo_boost_disabled" : false,
+    "arguments" : "-i 200 -i 1000 -i 2000 -i 3000 -n 6 --impl approx ",
+    "implementation" : "approx",
+    "implementation_correct" : true,
+    "num_runs" : 6,
+    "num_input_sizes" : 4,
+    "input_sizes" : [200, 1000, 2000, 3000],
+
+
+    "benchmarks" : {
+        "200" : [
+            241564191,
+            239435023,
+            223623635,
+            225595935,
+            229459931,
+            227549454
+        ],
+        "1000" : [
+            4977426800,
+            4994842711,
+            4967276354,
+            4963453056,
+            4962172149,
+            4974881082
+        ],
+        "2000" : [
+            36785066083,
+            39832566172,
+            39613695613,
+            37427939068,
+            37136280664,
+            39662395801
+        ],
+        "3000" : [
+            56226955354,
+            62329187443,
+            57204615460,
+            58086930516,
+            61942697640,
+            58183860410
+        ]
+    }
+}

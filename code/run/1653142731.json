@@ -1,0 +1,52 @@
+{
+    "label" : "improved spatial locality (K=1)",
+    "git_status" : "modified",
+    "git_branch" : "master",
+    "compiler" : "gcc",
+    "compiler_flags" : "-Wall -lm -O3 ",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "turbo_boost_disabled" : false,
+    "arguments" : "-i 200 -i 1000 -i 2000 -i 3000 -n 6 --impl approx ",
+    "implementation" : "approx",
+    "implementation_correct" : true,
+    "num_runs" : 6,
+    "num_input_sizes" : 4,
+    "input_sizes" : [200, 1000, 2000, 3000],
+
+
+    "benchmarks" : {
+        "200" : [
+            233426312,
+            230213321,
+            213186308,
+            213192448,
+            214452808,
+            228885655
+        ],
+        "1000" : [
+            4851865757,
+            4846660721,
+            5130515537,
+            4747897759,
+            4778421465,
+            47238149474
+        ],
+        "2000" : [
+            19977430914,
+            20103044456,
+            20226112066,
+            20203173404,
+            20099640241,
+            20063452322
+        ],
+        "3000" : [
+            50574863610,
+            49591038072,
+            51752218280,
+            52044331165,
+            50444904061,
+            49778496818
+        ]
+    }
+}
