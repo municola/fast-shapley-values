@@ -1,6 +1,16 @@
 /reference_implementation/**
 /code/shapley_values
 /code/gmon.out
+/code/shapley_values_opt2
+/code/shapley_values_opt3
+/code/shapley_values_opt4
+/code/shapley_values_opt5
+/code/shapley_values_opt6
+/code/shapley_values_opt7
+/code/shapley_values_opt8
+/code/shapley_values_opt10
+/code/shapley_values_opt11
+/code/run_approx.sh
 
 *.bin
 *.npy
