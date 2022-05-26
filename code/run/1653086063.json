@@ -1,0 +1,55 @@
+{
+    "label" : "Combined Exact NoVec (Patrick)",
+    "git_status" : "clean",
+    "git_branch" : "master",
+    "compiler" : "gcc",
+    "compiler_flags" : "-Wall -lm -O3 ",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz",
+    "turbo_boost_disabled" : true,
+    "arguments" : "-i 192 -i 384 -i 768 -i 1536 -i 3072 --label Combined Exact NoVec (Patrick) ",
+    "implementation" : "exact",
+    "implementation_correct" : true,
+    "num_runs" : 5,
+    "num_input_sizes" : 5,
+    "input_sizes" : [192, 384, 768, 1536, 3072],
+
+
+    "benchmarks" : {
+        "192" : [
+            16439060,
+            16260904,
+            15344858,
+            14937174,
+            15091064
+        ],
+        "384" : [
+            62874143,
+            61643470,
+            61513142,
+            61491729,
+            61517471
+        ],
+        "768" : [
+            254117742,
+            252497813,
+            264525834,
+            250106879,
+            250321624
+        ],
+        "1536" : [
+            1060730987,
+            1038348734,
+            1038257710,
+            1032298806,
+            1033499169
+        ],
+        "3072" : [
+            4297842354,
+            4233828751,
+            4251930018,
+            4238901215,
+            4278208053
+        ]
+    }
+}

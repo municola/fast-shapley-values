@@ -1,0 +1,55 @@
+{
+    "label" : "Combined Exact Vec, fsize=1200 (Patrick)",
+    "git_status" : "modified",
+    "git_branch" : "vectorization",
+    "compiler" : "gcc",
+    "compiler_flags" : "-Wall -lm -O3 -mavx",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz",
+    "turbo_boost_disabled" : true,
+    "arguments" : "-i 192 -i 384 -i 768 -i 1536 -i 3072 --label Combined Exact Vec (Patrick) ",
+    "implementation" : "exact",
+    "implementation_correct" : true,
+    "num_runs" : 5,
+    "num_input_sizes" : 5,
+    "input_sizes" : [192, 384, 768, 1536, 3072],
+
+
+    "benchmarks" : {
+        "192" : [
+            8711898,
+            8497671,
+            8400633,
+            8341870,
+            8316329
+        ],
+        "384" : [
+            36305349,
+            36660823,
+            35874556,
+            35815284,
+            35814223
+        ],
+        "768" : [
+            149525634,
+            145643521,
+            146853858,
+            146132060,
+            146055255
+        ],
+        "1536" : [
+            626990832,
+            609496320,
+            614711567,
+            614503163,
+            612867739
+        ],
+        "3072" : [
+            2608242152,
+            2538888117,
+            2539701315,
+            2547018174,
+            2542481152
+        ]
+    }
+}

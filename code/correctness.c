@@ -52,7 +52,9 @@ bool exact_correct(run_variables_t *run_variables, void *context) {
     init_context(test_ctx2, ctx->input_size);
 
     // replace both functions with whatever you want to test
-    combined_knn_shapley_opt((void*)test_ctx2);
+    get_true_exact_KNN((void*)test_ctx2);
+    single_unweighted_knn_class_shapley_opt((void*)test_ctx2);
+    
 
     double error_knn = nrm_sqr_diff_int(ctx->x_test_knn_gt, test_ctx2->x_test_knn_gt, ctx->size_x_trn*ctx->size_x_tst);
     debug_print("KNN Correctness: Error < EPS: %f < %f", error_knn, EPS);
