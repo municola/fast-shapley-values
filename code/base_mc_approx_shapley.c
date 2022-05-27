@@ -37,6 +37,61 @@ static inline void heapify(int heap[], int i) {
     }
 }
 
+static inline void inlined_heapify(int maxheap[], int dist_new, int max_dist, int max_index, 
+        int left_dist, int right_dist, int left_index, int right_index, uint16_t pi_i, int j, size_t size_x_trn, int* x_test_knn_gt) {
+
+    if (dist_new < left_dist || dist_new < right_dist) {
+        if (left_dist > right_dist) {
+            max_dist = left_dist;
+            max_index = left_index;
+            // Heapify Left
+            int left = 3 < size ? maxheap[3] : -1;
+            int right = 4 < size ? maxheap[4] : -1;
+            if (dist_new < left || dist_new < right) {
+                if (left > right) {
+                    left_dist = left;
+                    left_index = x_test_knn_gt[j*size_x_trn+left];
+                    maxheap[3] = dist_new;
+                    heapify(maxheap, 3);
+                } else {
+                    left_dist = right;
+                    left_index = x_test_knn_gt[j*size_x_trn+right];
+                    maxheap[4] = dist_new;
+                    heapify(maxheap, 4);
+                }
+            } else {
+                left_dist = dist_new;
+                left_index = pi_i;
+            }
+        } else {
+            max_dist = right_dist;
+            max_index = right_index;
+            // Heapify Right
+            int left = 5 < size ? maxheap[5] : -1;
+            int right = 6 < size ? maxheap[6] : -1;
+            if (dist_new < left || dist_new < right) {
+                if (left > right) {
+                    right_dist = left;
+                    right_index = x_test_knn_gt[j*size_x_trn+left];
+                    maxheap[5] = dist_new;
+                    heapify(maxheap, 5);
+                } else {
+                    right_dist = right;
+                    right_index = x_test_knn_gt[j*size_x_trn+right];
+                    maxheap[6] = dist_new;
+                    heapify(maxheap, 6);
+                }
+            } else {
+                right_dist = dist_new;
+                right_index = pi_i;
+            }
+        }
+    } else {
+        max_dist = dist_new;
+        max_index = pi_i;
+    }   
+}
+
 // Inserts value into the max heap (if full, it replaces the root with the new value)
 void insert(int heap[], int val, int K) {
     if (size == 0) {
@@ -246,7 +301,7 @@ uint64_t run_approx_shapley(void *context) {
     srand(0);
     knn__approx_opt5(ctx);
     start_timer = start_tsc();
-    current_compute_shapley_using_improved_mc_approach(ctx);
+    opt12_compute_shapley_using_improved_mc_approach(ctx);
     end_timer = stop_tsc(start_timer);
 
     return end_timer;
@@ -2251,11 +2306,14 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
     int maxheap[K];
 
     assert(K >= 3);
-    assert(size_x_trn % 8 == 0);
+    assert((size_x_trn-K) % 8 == 0);
+    assert(size_x_trn % 16 == 0); 
 
     avx_xorshift128plus_key_t mykey;
     avx_xorshift128plus_init(324,4444,&mykey);
 
+
+    // initialize seq to [0, 1, 2, 3, 4, ..., N-1]
     __m256i ind = _mm256_set_epi16(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
     __m256i incr = _mm256_set1_epi16(16);
 
@@ -2267,6 +2325,7 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
     for (int j = 0; j < size_x_tst; j++) {
         double y_tst_j = y_tst[j];
 
+        // Precompute equality comparison of labels
         for (int i = 0; i < size_x_trn; i++) {
             trn_tst[i] = y_trn[i] == y_tst_j;
         }
@@ -2275,6 +2334,7 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
             
             memcpy(pi, seq, size_x_trn * sizeof(uint16_t));
 
+            // Get first 8 random bounded integers for shuffling
             __m256i vec8 = _mm256_set1_epi32(8);
             __m256i upperbound = _mm256_setr_epi32(size_x_trn, size_x_trn - 1, size_x_trn - 2, size_x_trn - 3,
 			size_x_trn - 4, size_x_trn - 5, size_x_trn - 6, size_x_trn - 7);
@@ -2286,24 +2346,21 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
             upperbound = _mm256_sub_epi32(upperbound, vec8);
             _Alignas(32) uint32_t tmp[8];
             _mm256_store_si256((__m256i*)tmp, res);
-            
             __m128i lo = _mm256_castsi256_si128(res);
 
             size = 1;
             double size_sqr_plus_size = 2;
-            int i, sum;
             uint8_t x = 1;
 
             uint16_t pi_0 = _mm_cvtsi128_si32(lo);
             pi[pi_0] = size_x_trn - 1;
-            maxheap[0] = x_test_knn_r_gt[j*size_x_trn+pi_0];
-            
-            sum = trn_tst[pi_0];
+            maxheap[0] = x_test_knn_r_gt[j*size_x_trn+pi_0]; 
+            int sum = trn_tst[pi_0];
             phi[t*size_x_trn+pi_0] = sum;
-
+            int i;
             for (i = 1; i < K; i++) {
-
                 uint16_t next;
+                // get next 8 random bounded
                 if (x==8) {
                     randombytes32 = avx_xorshift128plus(&mykey);
                     evenparts = _mm256_srli_epi64(_mm256_mul_epu32(randombytes32, upperbound), 32);
@@ -2346,93 +2403,170 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
             }
 
             int max_dist = maxheap[0];
-            int left_dist = maxheap[1];
-            int right_dist = maxheap[2];
-            int max_index = x_test_knn_gt[j*size_x_trn+max_dist];
-            int left_index = x_test_knn_gt[j*size_x_trn+left_dist];
-            int right_index = x_test_knn_gt[j*size_x_trn+right_dist];
 
-            for (; i < size_x_trn; i+=1) {
-                
-                uint16_t next;
-                if (x==8) {
-                    randombytes32 = avx_xorshift128plus(&mykey);
-                    evenparts = _mm256_srli_epi64(_mm256_mul_epu32(randombytes32, upperbound), 32);
-                    oddparts = _mm256_mul_epu32(_mm256_srli_epi64(randombytes32, 32), _mm256_srli_epi64(upperbound, 32));
-                    res = _mm256_blend_epi32(evenparts, oddparts, 0b10101010);
-                    upperbound = _mm256_sub_epi32(upperbound, vec8);
-                    _mm256_store_si256((__m256i*)tmp, res);  
-                    lo = _mm256_castsi256_si128(res);
-                    next = _mm_cvtsi128_si32(lo);
-                    x = 1;
+            for (; i < size_x_trn; i+=8) {
+
+                randombytes32 = avx_xorshift128plus(&mykey);
+                evenparts = _mm256_srli_epi64(_mm256_mul_epu32(randombytes32, upperbound), 32);
+                oddparts = _mm256_mul_epu32(_mm256_srli_epi64(randombytes32, 32), _mm256_srli_epi64(upperbound, 32));
+                res = _mm256_blend_epi32(evenparts, oddparts, 0b10101010);
+                upperbound = _mm256_sub_epi32(upperbound, vec8);
+                lo = _mm256_castsi256_si128(res);
+
+                uint16_t next0 = _mm_cvtsi128_si32(lo);
+                uint16_t next1 = _mm_extract_epi32(lo, 1);
+                uint16_t next2 = _mm_extract_epi32(lo, 2);
+                uint16_t next3 = _mm_extract_epi32(lo, 3);
+
+                int pi_i0 = pi[next0];
+                pi[next0] = pi[size_x_trn - i - 1];
+
+                int pi_i1 = pi[next1];
+                pi[next1] = pi[size_x_trn - i - 2];
+
+                int pi_i2 = pi[next2];
+                pi[next2] = pi[size_x_trn - i - 3];
+
+                int dist_new0 = x_test_knn_r_gt[j*size_x_trn+pi_i0];
+                int dist_new1 = x_test_knn_r_gt[j*size_x_trn+pi_i1];
+
+                // i = 0
+                if (dist_new0 < max_dist) {
+                    int v_incl_i = trn_tst[pi_i0];
+                    int v_excl_i = trn_tst[x_test_knn_gt[j*size_x_trn+max_dist]];
+
+                    maxheap[0] = dist_new0;
+                    heapify(maxheap, 0);
+                    max_dist = maxheap[0];
+
+                    phi[t*size_x_trn+pi_i0] = (v_incl_i - v_excl_i) * ONE_OVER_K;     
                 } else {
-                    next = tmp[x];
-                    x++;
+                    phi[t*size_x_trn+pi_i0] = 0;
                 }
 
-                int pi_i = pi[next];
-                pi[next] = pi[size_x_trn - i - 1];
+                uint16_t next4 = _mm256_extract_epi32(res, 4);
+                int pi_i3 = pi[next3];
+                pi[next3] = pi[size_x_trn - i - 4];
+                int dist_new2 = x_test_knn_r_gt[j*size_x_trn+pi_i2];
+                
+                // i = 1
+                if (dist_new1 < max_dist) {
+                    int v_incl_i = trn_tst[pi_i1];
+                    int v_excl_i = trn_tst[x_test_knn_gt[j*size_x_trn+max_dist]];
 
-                int dist_new = x_test_knn_r_gt[j*size_x_trn+pi_i];
+                    maxheap[0] = dist_new1;
+                    heapify(maxheap, 0);
+                    max_dist = maxheap[0];
 
-                if (dist_new < max_dist) {
-                    int v_incl_i = trn_tst[pi_i];
-                    int v_excl_i = trn_tst[max_index];
-
-                    if (dist_new < left_dist || dist_new < right_dist) {
-                        if (left_dist > right_dist) {
-                            max_dist = left_dist;
-                            max_index = left_index;
-                            // Heapify Left
-                            int left = 3 < size ? maxheap[3] : -1;
-                            int right = 4 < size ? maxheap[4] : -1;
-                            if (dist_new < left || dist_new < right) {
-                                if (left > right) {
-                                    left_dist = left;
-                                    left_index = x_test_knn_gt[j*size_x_trn+left];
-                                    maxheap[3] = dist_new;
-                                    heapify(maxheap, 3);
-                                } else {
-                                    left_dist = right;
-                                    left_index = x_test_knn_gt[j*size_x_trn+right];
-                                    maxheap[4] = dist_new;
-                                    heapify(maxheap, 4);
-                                }
-                            } else {
-                                left_dist = dist_new;
-                                left_index = pi_i;
-                            }
-                        } else {
-                            max_dist = right_dist;
-                            max_index = right_index;
-                            // Heapify Right
-                            int left = 5 < size ? maxheap[5] : -1;
-                            int right = 6 < size ? maxheap[6] : -1;
-                            if (dist_new < left || dist_new < right) {
-                                if (left > right) {
-                                    right_dist = left;
-                                    right_index = x_test_knn_gt[j*size_x_trn+left];
-                                    maxheap[5] = dist_new;
-                                    heapify(maxheap, 5);
-                                } else {
-                                    right_dist = right;
-                                    right_index = x_test_knn_gt[j*size_x_trn+right];
-                                    maxheap[6] = dist_new;
-                                    heapify(maxheap, 6);
-                                }
-                            } else {
-                                right_dist = dist_new;
-                                right_index = pi_i;
-                            }
-                        }
-                    } else {
-                        max_dist = dist_new;
-                        max_index = pi_i;
-                    }   
-
-                    phi[t*size_x_trn+pi_i] = (v_incl_i - v_excl_i) * ONE_OVER_K;     
+                    phi[t*size_x_trn+pi_i1] = (v_incl_i - v_excl_i) * ONE_OVER_K;     
                 } else {
-                    phi[t*size_x_trn+pi_i] = 0;
+                    phi[t*size_x_trn+pi_i1] = 0;
+                }
+
+                uint16_t next5 = _mm256_extract_epi32(res, 5);
+                int pi_i4 = pi[next4];
+                pi[next4] = pi[size_x_trn - i - 5];
+                int dist_new3 = x_test_knn_r_gt[j*size_x_trn+pi_i3];
+                
+                // i = 2
+                if (dist_new2 < max_dist) {
+                    int v_incl_i = trn_tst[pi_i2];
+                    int v_excl_i = trn_tst[x_test_knn_gt[j*size_x_trn+max_dist]];
+
+                    maxheap[0] = dist_new2;
+                    heapify(maxheap, 0);
+                    max_dist = maxheap[0];
+
+                    phi[t*size_x_trn+pi_i2] = (v_incl_i - v_excl_i) * ONE_OVER_K;     
+                } else {
+                    phi[t*size_x_trn+pi_i2] = 0;
+                }
+
+                uint16_t next6 = _mm256_extract_epi32(res, 6);
+                int pi_i5 = pi[next5];
+                pi[next5] = pi[size_x_trn - i - 6];
+                int dist_new4 = x_test_knn_r_gt[j*size_x_trn+pi_i4];
+                
+                // i = 3
+                if (dist_new3 < max_dist) {
+                    int v_incl_i = trn_tst[pi_i3];
+                    int v_excl_i = trn_tst[x_test_knn_gt[j*size_x_trn+max_dist]];
+
+                    maxheap[0] = dist_new3;
+                    heapify(maxheap, 0);
+                    max_dist = maxheap[0];
+
+                    phi[t*size_x_trn+pi_i3] = (v_incl_i - v_excl_i) * ONE_OVER_K;     
+                } else {
+                    phi[t*size_x_trn+pi_i3] = 0;
+                }
+
+                uint16_t next7 = _mm256_extract_epi32(res, 7);
+                int pi_i6 = pi[next6];
+                pi[next6] = pi[size_x_trn - i - 7];
+                int dist_new5 = x_test_knn_r_gt[j*size_x_trn+pi_i5];
+                
+                // i = 4
+                if (dist_new4 < max_dist) {
+                    int v_incl_i = trn_tst[pi_i4];
+                    int v_excl_i = trn_tst[x_test_knn_gt[j*size_x_trn+max_dist]];
+
+                    maxheap[0] = dist_new4;
+                    heapify(maxheap, 0);
+                    max_dist = maxheap[0];
+
+                    phi[t*size_x_trn+pi_i4] = (v_incl_i - v_excl_i) * ONE_OVER_K;     
+                } else {
+                    phi[t*size_x_trn+pi_i4] = 0;
+                }
+
+                int pi_i7 = pi[next7];
+                pi[next7] = pi[size_x_trn - i - 8];
+
+                int dist_new6 = x_test_knn_r_gt[j*size_x_trn+pi_i6];
+                
+                // i = 5
+                if (dist_new5 < max_dist) {
+                    int v_incl_i = trn_tst[pi_i5];
+                    int v_excl_i = trn_tst[x_test_knn_gt[j*size_x_trn+max_dist]];
+
+                    maxheap[0] = dist_new5;
+                    heapify(maxheap, 0);
+                    max_dist = maxheap[0];
+
+                    phi[t*size_x_trn+pi_i5] = (v_incl_i - v_excl_i) * ONE_OVER_K;     
+                } else {
+                    phi[t*size_x_trn+pi_i5] = 0;
+                }
+
+                int dist_new7 = x_test_knn_r_gt[j*size_x_trn+pi_i7];
+                
+                // i = 6
+                if (dist_new6 < max_dist) {
+                    int v_incl_i = trn_tst[pi_i6];
+                    int v_excl_i = trn_tst[x_test_knn_gt[j*size_x_trn+max_dist]];
+
+                    maxheap[0] = dist_new6;
+                    heapify(maxheap, 0);
+                    max_dist = maxheap[0];
+
+                    phi[t*size_x_trn+pi_i6] = (v_incl_i - v_excl_i) * ONE_OVER_K;     
+                } else {
+                    phi[t*size_x_trn+pi_i6] = 0;
+                }
+
+                // i = 7
+                if (dist_new7 < max_dist) {
+                    int v_incl_i = trn_tst[pi_i7];
+                    int v_excl_i = trn_tst[x_test_knn_gt[j*size_x_trn+max_dist]];
+
+                    maxheap[0] = dist_new7;
+                    heapify(maxheap, 0);
+                    max_dist = maxheap[0];
+
+                    phi[t*size_x_trn+pi_i7] = (v_incl_i - v_excl_i) * ONE_OVER_K;     
+                } else {
+                    phi[t*size_x_trn+pi_i7] = 0;
                 }
             }
         }
