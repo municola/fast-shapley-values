@@ -1,0 +1,63 @@
+{
+    "label" : "B=32_op10_combined_shapley_fsize=2048",
+    "git_status" : "modified",
+    "git_branch" : "master",
+    "git_revision" : "a82490c",
+    "compiler" : "gcc",
+    "compiler_flags" : "-std=c11 -Wall -lm -O3 -mavx -mavx2 -mfma -march=native",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "turbo_boost_disabled" : true,
+    "arguments" : "-n 5 -i 192 -i 384 -i 768 -i 1536 -i 3072 -i 6144 --label op10_combined_shapley_fsize=2048 ",
+    "implementation" : "exact",
+    "implementation_correct" : true,
+    "num_runs" : 5,
+    "num_input_sizes" : 6,
+    "input_sizes" : [192, 384, 768, 1536, 3072, 6144],
+
+
+    "benchmarks" : {
+        "192" : [
+            75803876,
+            68574202,
+            64972998,
+            62543368,
+            60554110
+        ],
+        "384" : [
+            248556110,
+            246619156,
+            246694706,
+            247183424,
+            246374986
+        ],
+        "768" : [
+            1438030882,
+            1437485986,
+            1431962286,
+            1463495538,
+            1436336660
+        ],
+        "1536" : [
+            5724901008,
+            5717738050,
+            5712516972,
+            5711590556,
+            5710072350
+        ],
+        "3072" : [
+            24051069430,
+            24056208884,
+            24041578058,
+            24152562612,
+            24174449730
+        ],
+        "6144" : [
+            95922737532,
+            96060718626,
+            96351719168,
+            95895497746,
+            95606362770
+        ]
+    }
+}

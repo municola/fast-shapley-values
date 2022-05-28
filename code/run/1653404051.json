@@ -1,0 +1,62 @@
+{
+    "label" : "re_opt13_shapley_fsize=128",
+    "git_status" : "modified",
+    "git_branch" : "shapley",
+    "compiler" : "gcc",
+    "compiler_flags" : "-std=c11 -Wall -lm -O3 -mavx -march=native -g",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "turbo_boost_disabled" : true,
+    "arguments" : "-n 5 -i 192 -i 384 -i 768 -i 1536 -i 3072 -i 6144 --label re_opt13_shapley_fsize=128 ",
+    "implementation" : "exact",
+    "implementation_correct" : true,
+    "num_runs" : 5,
+    "num_input_sizes" : 6,
+    "input_sizes" : [192, 384, 768, 1536, 3072, 6144],
+
+
+    "benchmarks" : {
+        "192" : [
+            215752,
+            259104,
+            215402,
+            189440,
+            257294
+        ],
+        "384" : [
+            877492,
+            857422,
+            877294,
+            856120,
+            868748
+        ],
+        "768" : [
+            4009818,
+            3970030,
+            7670900,
+            3968334,
+            4022026
+        ],
+        "1536" : [
+            19678642,
+            19909714,
+            19663142,
+            19789508,
+            19665362
+        ],
+        "3072" : [
+            87345984,
+            85974996,
+            85825136,
+            86346570,
+            85976312
+        ],
+        "6144" : [
+            403444070,
+            404426268,
+            404365846,
+            471812138,
+            403959072
+        ]
+    }
+}

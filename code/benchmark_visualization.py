@@ -279,6 +279,10 @@ class GETHandler(BaseHTTPRequestHandler):
 
             pyplot.clf()
             fig, ax = pyplot.subplots()
+            #fig.set_figwidth(2*6.4)
+            #fig.set_figheight(2*4.8)
+            ax.set_facecolor('#F2F2F2')
+            ax.grid(color='#FFFFFF', linestyle='-', linewidth=1.25)
 
 
             max_input_size_equal = True
@@ -315,7 +319,7 @@ class GETHandler(BaseHTTPRequestHandler):
                 pyplot.plot(x, y, marker='^', label=runfile["label"])
             
             if max_input_size_equal:
-                speedup_caption = " (Max. speedup on n={}: {:.2f}x)".format(max_input_size, most_cycles/least_cycles)
+                speedup_caption = " (max. speedup on n={}: {:.2f}x)".format(max_input_size, most_cycles/least_cycles)
             else:
                 speedup_caption = ""
 
@@ -325,7 +329,7 @@ class GETHandler(BaseHTTPRequestHandler):
             pyplot.title("Runtime" + speedup_caption)
 
             tmp_path = tempfile.gettempdir() + "/asl_graph.png"
-            pyplot.savefig(tmp_path)
+            pyplot.savefig(tmp_path, bbox_inches='tight')
             self.wfile.write(open(tmp_path, "rb").read())
 
 
@@ -335,26 +339,48 @@ class GETHandler(BaseHTTPRequestHandler):
 
             pyplot.clf()
             fig, ax = pyplot.subplots()
+            #fig.set_figwidth(2*6.4)
+            #fig.set_figheight(2*4.8)
+            ax.set_facecolor('#F2F2F2')
+            ax.grid(color='#FFFFFF', linestyle='-', linewidth=1.25)
+
+
+            # hardcoded (measured) FLOPs per input size
+            # with a feature size of 2048
+            flops_per_input_size = {
+                192: 36662191,
+                384: 62847815,
+                768: 268652759,
+                1536: 1064017548,
+                3072: 4080291544,
+                6144: 16047186227,
+                12288: 64112343757
+            }
+
+            last_y = []
             for i in ids:
                 runfile = runfiles[i]
                 x = runfile["input_sizes"]
                 y = []
+
                 for input_size in x:
-                    x_trg = 10
-                    x_tst = 5
-                    flops = x_tst * (2 + (x_trg - 2) * 7)
+                    flops = flops_per_input_size[input_size]
                     cycles = median(runfile["benchmarks"][str(input_size)])
                     y.append(flops/cycles)
             
+                last_y.append(y[-1])
                 pyplot.plot(x, y, marker='^', label=runfile["label"])
             
             ax.legend()
             ax.set_xlabel("n (input size)")
             ax.set_ylabel("flops/cycle")
-            pyplot.title("Performance")
+
+            speedup_caption = " (speedup on last y: {:.2f})".format(max(last_y)/min(last_y))
+            
+            pyplot.title("Performance [assuming f_size=2048]" + speedup_caption)
 
             tmp_path = tempfile.gettempdir() + "/asl_graph.png"
-            pyplot.savefig(tmp_path)
+            pyplot.savefig(tmp_path, bbox_inches='tight')
             self.wfile.write(open(tmp_path, "rb").read())
         
 

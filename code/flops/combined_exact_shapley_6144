@@ -1,0 +1,28 @@
+Performance counter stats for './shapley_values -i 6144 -n 1':
+
+    18,658,316,964      cycles                                                        (29.47%)
+                 0      mem-loads                                                     (35.34%)
+     1,757,831,068      mem-stores                                                    (35.30%)
+                14      fp_arith_inst_retired.scalar_single                                     (41.22%)
+       231,092,753      fp_arith_inst_retired.scalar_double                                     (47.09%)
+                 0      fp_arith_inst_retired.256b_packed_single                                     (46.97%)
+                 0      fp_arith_inst_retired.scalar_single                                     (46.97%)
+                 0      fp_arith_inst_retired.256b_packed_single                                     (47.04%)
+     3,878,694,895      fp_arith_inst_retired.256b_packed_double                                     (47.05%)
+                 0      fp_arith_inst_retired.128b_packed_single                                     (47.04%)
+       150,656,947      fp_arith_inst_retired.128b_packed_double                                     (47.07%)
+           319,353      dTLB-load-misses          #    0.00% of all dTLB cache accesses  (47.15%)
+     6,957,856,620      dTLB-load                                                     (47.24%)
+         2,503,904      dTLB-store-misses                                             (47.27%)
+     1,756,378,340      dTLB-stores                                                   (47.35%)
+       241,193,781      L1-dcache-load-misses     #    3.48% of all L1-dcache accesses  (23.81%)
+     6,928,799,261      L1-dcache-loads                                               (23.60%)
+
+      14.777996098 seconds time elapsed
+
+      13.472145000 seconds user
+       0.939309000 seconds sys
+
+FLOPS
+= 231092753 + (2 * 150656947) + (4 * 3878694895)
+= 16047186227

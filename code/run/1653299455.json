@@ -1,0 +1,55 @@
+{
+    "label" : "inline_compar_fsize=128",
+    "git_status" : "modified",
+    "git_branch" : "meier",
+    "compiler" : "gcc",
+    "compiler_flags" : "-std=c11 -Wall -lm -O3 -mavx -g",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "turbo_boost_disabled" : true,
+    "arguments" : "-n 5 -i 192 -i 384 -i 768 -i 1536 -i 3072 --label inline_compar_fsize=128 ",
+    "implementation" : "exact",
+    "implementation_correct" : true,
+    "num_runs" : 5,
+    "num_input_sizes" : 5,
+    "input_sizes" : [192, 384, 768, 1536, 3072],
+
+
+    "benchmarks" : {
+        "192" : [
+            3362430,
+            3382334,
+            3307332,
+            3537654,
+            3548894
+        ],
+        "384" : [
+            14762078,
+            15102400,
+            14347482,
+            13940572,
+            14164242
+        ],
+        "768" : [
+            62061850,
+            63256484,
+            62678288,
+            62404770,
+            60959284
+        ],
+        "1536" : [
+            254859574,
+            251133692,
+            252645362,
+            252835946,
+            252937704
+        ],
+        "3072" : [
+            1079328972,
+            1098926074,
+            1078149062,
+            1086151576,
+            1054893234
+        ]
+    }
+}

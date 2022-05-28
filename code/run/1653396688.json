@@ -1,0 +1,62 @@
+{
+    "label" : "pragma_opt12_shapley_fsize=128",
+    "git_status" : "modified",
+    "git_branch" : "shapley",
+    "compiler" : "gcc",
+    "compiler_flags" : "-std=c11 -Wall -lm -O3 -mavx -march=native -g",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "turbo_boost_disabled" : true,
+    "arguments" : "-n 5 -i 192 -i 384 -i 768 -i 1536 -i 3072 -i 6144 --label pragma_opt12_shapley_fsize=128 ",
+    "implementation" : "exact",
+    "implementation_correct" : true,
+    "num_runs" : 5,
+    "num_input_sizes" : 6,
+    "input_sizes" : [192, 384, 768, 1536, 3072, 6144],
+
+
+    "benchmarks" : {
+        "192" : [
+            382940,
+            373400,
+            382404,
+            374352,
+            315242
+        ],
+        "384" : [
+            1158060,
+            1179862,
+            1176856,
+            1184370,
+            1152254
+        ],
+        "768" : [
+            4608134,
+            7426086,
+            4520010,
+            4610478,
+            4652322
+        ],
+        "1536" : [
+            19599566,
+            19377228,
+            19214526,
+            19253776,
+            19324654
+        ],
+        "3072" : [
+            88289672,
+            87194784,
+            87463612,
+            86908306,
+            87878104
+        ],
+        "6144" : [
+            502833126,
+            399001466,
+            402400662,
+            420229832,
+            397188674
+        ]
+    }
+}

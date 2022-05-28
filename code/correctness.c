@@ -15,7 +15,7 @@
 double nrm_sqr_diff_double(double *x, double *y, int n) {
     double nrm_sqr = 0.0;
     for(int i = 0; i < n; i++) {
-        //debug_print("nrm_sqr_diff_double: %f %f\n", x[i], y[i]);
+        // debug_print("nrm_sqr_diff_double: %f %f\n", x[i], y[i]);
         nrm_sqr += (x[i] - y[i]) * (x[i] - y[i]);
     }
     
@@ -47,20 +47,38 @@ bool exact_correct(run_variables_t *run_variables, void *context) {
     // DO NOT TOUCH, base implementations for correctness testing
     init_context(ctx, ctx->input_size);
     get_true_exact_KNN(context);
+
+    // printf("Exact correct...\n");
+    // printf("Base: x_test_knn_gt: input_size: %d \n", ctx->input_size);
+    // for(int i=0; i<ctx->size_x_tst; i++){
+    //     for(int j=0; j<ctx->size_x_trn; j++){
+    //         printf("%d ", ctx->x_test_knn_gt[i*ctx->size_x_trn + j]);
+    //     }
+    //     printf("\n");
+    // }
+
     compute_single_unweighted_knn_class_shapley(context);
+    // single_unweighted_knn_class_shapley_opt12(context);
 
     init_context(test_ctx2, ctx->input_size);
 
     // replace both functions with whatever you want to test
     get_true_exact_KNN((void*)test_ctx2);
+    // printf("Second: x_test_knn_gt: input_size: %d \n", test_ctx2->input_size);
+    // for(int i=0; i<test_ctx2->size_x_tst; i++){
+    //     for(int j=0; j<test_ctx2->size_x_trn; j++){
+    //         printf("%d ", test_ctx2->x_test_knn_gt[i*test_ctx2->size_x_trn + j]);
+    //     }
+    //     printf("\n");
+    // }
     single_unweighted_knn_class_shapley_opt((void*)test_ctx2);
     
 
     double error_knn = nrm_sqr_diff_int(ctx->x_test_knn_gt, test_ctx2->x_test_knn_gt, ctx->size_x_trn*ctx->size_x_tst);
-    debug_print("KNN Correctness: Error < EPS: %f < %f", error_knn, EPS);
+    debug_print("KNN Correctness: Error < EPS: %f < %f\n", error_knn, EPS);
 
     double error_shapley = nrm_sqr_diff_double(ctx->sp_gt, test_ctx2->sp_gt, ctx->size_x_trn*ctx->size_x_tst);
-    debug_print("Shapley Correctness: Error < EPS: %f < %f", error_shapley, EPS);
+    debug_print("Shapley Correctness: Error < EPS: %f < %f\n", error_shapley, EPS);
 
     double error = error_knn + error_shapley;
     return error < EPS;
