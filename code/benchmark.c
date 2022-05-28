@@ -47,9 +47,7 @@ void init_context(context_t *ctx, int input_size){
     ctx->size_y_trn = input_size;
 
     ctx->K = sqrt(input_size);
-    while((input_size - (int)ctx->K) % 16 != 0) {
-        ctx->K++;
-    }
+
     double eps = 0.01;
     
     // T := 1/(K*eps)^2 * log(2K/delta)
