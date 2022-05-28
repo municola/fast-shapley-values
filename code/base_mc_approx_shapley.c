@@ -23,7 +23,7 @@ static inline void swap(int *a, int *b) {
     *a = temp;
 }
 
-static inline void heapify(int heap[], int i) {
+static inline void heapify(int *heap, int i) {
     int l = 2 * i + 1;
     int r = 2 * i + 2;
     int largest = i;
