@@ -37,6 +37,25 @@ static inline void heapify(int *heap, int i) {
     }
 }
 
+static inline void fast_heapify(int *heap, int i) {
+    const int left = 2 * i + 1;
+    const int right = left + 1;
+    int largest = i;
+    if (left < size) {
+        if (heap[left] > heap[i]) {
+            
+        }
+    }
+    if ( < size && heap[l] > heap[largest])
+        largest = l;
+    if (r < size && heap[r] > heap[largest])
+        largest = r;
+    if (largest != i) {
+        swap(&heap[i], &heap[largest]);
+        heapify(heap, largest);
+    }
+}
+
 static inline void inlined_heapify(int maxheap[], int dist_new, int max_dist, int max_index, 
         int left_dist, int right_dist, int left_index, int right_index, uint16_t pi_i, int j, size_t size_x_trn, int* x_test_knn_gt) {
 
@@ -2106,6 +2125,11 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
             }
 
             int max_dist = maxheap[0];
+            int left_dist = maxheap[1];
+            int right_dist = maxheap[2];
+            int max_index = x_test_knn_gt[j*size_x_trn+max_dist];
+            int left_index = x_test_knn_gt[j*size_x_trn+left_dist];
+            int right_index = x_test_knn_gt[j*size_x_trn+right_dist];
 
             // compute for other training points
             for (; i < size_x_trn; i++) {
@@ -2114,13 +2138,59 @@ void current_compute_shapley_using_improved_mc_approach(void *context) {
 
                 if (dist_new < max_dist) {
                     int v_incl_i = trn_tst[pi_i];
-                    int v_excl_i = trn_tst[x_test_knn_gt[j*size_x_trn+max_dist]];
-
-                    maxheap[0] = dist_new;
-                    heapify(maxheap, 0);
-                    max_dist = maxheap[0];
-
+                    int v_excl_i = trn_tst[max_index];
                     sp_gt[j*size_x_trn+pi_i] += (v_incl_i - v_excl_i) * ONE_OVER_K;          
+
+                    if (dist_new < left_dist || dist_new < right_dist) {
+                        if (left_dist > right_dist) {
+                            max_dist = left_dist;
+                            max_index = left_index;
+                            // Heapify Left
+                            int left = 3 < size ? maxheap[3] : -1;
+                            int right = 4 < size ? maxheap[4] : -1;
+                            if (dist_new < left || dist_new < right) {
+                                if (left > right) {
+                                    left_dist = left;
+                                    left_index = x_test_knn_gt[j*size_x_trn+left];
+                                    maxheap[3] = dist_new;
+                                    heapify(maxheap, 3);
+                                } else {
+                                    left_dist = right;
+                                    left_index = x_test_knn_gt[j*size_x_trn+right];
+                                    maxheap[4] = dist_new;
+                                    heapify(maxheap, 4);
+                                }
+                            } else {
+                                left_dist = dist_new;
+                                left_index = pi_i;
+                            }
+                        } else {
+                            max_dist = right_dist;
+                            max_index = right_index;
+                            // Heapify Right
+                            int left = 5 < size ? maxheap[5] : -1;
+                            int right = 6 < size ? maxheap[6] : -1;
+                            if (dist_new < left || dist_new < right) {
+                                if (left > right) {
+                                    right_dist = left;
+                                    right_index = x_test_knn_gt[j*size_x_trn+left];
+                                    maxheap[5] = dist_new;
+                                    heapify(maxheap, 5);
+                                } else {
+                                    right_dist = right;
+                                    right_index = x_test_knn_gt[j*size_x_trn+right];
+                                    maxheap[6] = dist_new;
+                                    heapify(maxheap, 6);
+                                }
+                            } else {
+                                right_dist = dist_new;
+                                right_index = pi_i;
+                            }
+                        }
+                    } else {
+                        max_dist = dist_new;
+                        max_index = pi_i;
+                    }   
                 }
             }
         }
