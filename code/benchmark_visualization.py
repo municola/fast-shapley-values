@@ -279,6 +279,10 @@ class GETHandler(BaseHTTPRequestHandler):
 
             pyplot.clf()
             fig, ax = pyplot.subplots()
+            #fig.set_figwidth(2*6.4)
+            #fig.set_figheight(2*4.8)
+            ax.set_facecolor('#F2F2F2')
+            ax.grid(color='#FFFFFF', linestyle='-', linewidth=1.25)
 
 
             max_input_size_equal = True
@@ -315,7 +319,7 @@ class GETHandler(BaseHTTPRequestHandler):
                 pyplot.plot(x, y, marker='^', label=runfile["label"])
             
             if max_input_size_equal:
-                speedup_caption = " (Max. speedup on n={}: {:.2f}x)".format(max_input_size, most_cycles/least_cycles)
+                speedup_caption = " (max. speedup on n={}: {:.2f}x)".format(max_input_size, most_cycles/least_cycles)
             else:
                 speedup_caption = ""
 
@@ -335,6 +339,11 @@ class GETHandler(BaseHTTPRequestHandler):
 
             pyplot.clf()
             fig, ax = pyplot.subplots()
+            #fig.set_figwidth(2*6.4)
+            #fig.set_figheight(2*4.8)
+            ax.set_facecolor('#F2F2F2')
+            ax.grid(color='#FFFFFF', linestyle='-', linewidth=1.25)
+
             for i in ids:
                 runfile = runfiles[i]
                 x = runfile["input_sizes"]
