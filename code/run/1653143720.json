@@ -1,0 +1,52 @@
+{
+    "label" : "Baseline (K=1)",
+    "git_status" : "modified",
+    "git_branch" : "master",
+    "compiler" : "gcc",
+    "compiler_flags" : "-Wall -lm -O3 ",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "turbo_boost_disabled" : false,
+    "arguments" : "-i 200 -i 1000 -i 2000 -i 3000 -n 6 --impl approx ",
+    "implementation" : "approx",
+    "implementation_correct" : true,
+    "num_runs" : 6,
+    "num_input_sizes" : 4,
+    "input_sizes" : [200, 1000, 2000, 3000],
+
+
+    "benchmarks" : {
+        "200" : [
+            1021495378,
+            1029714586,
+            1014573893,
+            1033118480,
+            1033430626,
+            1028008714
+        ],
+        "1000" : [
+            25657347502,
+            26109336158,
+            26299059445,
+            25516714229,
+            25217206074,
+            25155696015
+        ],
+        "2000" : [
+            115321055444,
+            115711118377,
+            114240039432,
+            115936732996,
+            115852725911,
+            117276554831
+        ],
+        "3000" : [
+            230098935643,
+            227884084267,
+            236968104830,
+            233983888036,
+            237958420006,
+            234278040534
+        ]
+    }
+}

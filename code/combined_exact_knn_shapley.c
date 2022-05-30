@@ -15,7 +15,7 @@
 extern double* dist_gt;
 extern double* dist_gt_row;
 
-inline
+static inline
 double vec_sum(__m256d vec) {
     __m128d vlow  = _mm256_castpd256_pd128(vec);
     __m128d vhigh = _mm256_extractf128_pd(vec, 1); // high 128

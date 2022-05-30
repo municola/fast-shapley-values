@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <time.h>
+#include <math.h>
 
 #include "tsc_x86.h"
 #include "utils.h"
@@ -37,6 +38,7 @@ void init_context(context_t *ctx, int input_size){
 
     // KNN result
     ctx->x_test_knn_gt = NULL;
+    ctx->x_test_knn_r_gt = NULL;
 
     ctx->size_x_tst = input_size;
     ctx->size_y_tst = input_size;
@@ -44,10 +46,10 @@ void init_context(context_t *ctx, int input_size){
     ctx->size_x_trn = input_size;
     ctx->size_y_trn = input_size;
 
-    ctx->K = 1;
+    ctx->K = 6;
     
     // T := 1/(K*eps)^2 * log(2K/delta)
-    ctx->T = 640; // for eps = delta = 0.05 and K = 1
+    ctx->T = log(40*ctx->K) / (ctx->K*ctx->K*0.05*0.05);
 
     // Allocate memory - Load data
     // Note that AVX requires 32 byte alignment, that's why we replace
@@ -71,6 +73,9 @@ void init_context(context_t *ctx, int input_size){
     if(ctx->x_test_knn_gt) free(ctx->x_test_knn_gt);
     ctx->x_test_knn_gt = aligned_alloc(32, ctx->size_x_trn * ctx->size_x_tst * sizeof(int));
     memset(ctx->x_test_knn_gt, 0, ctx->size_x_trn * ctx->size_x_tst * sizeof(int));
+
+    if(ctx->x_test_knn_r_gt) free(ctx->x_test_knn_r_gt);
+    ctx->x_test_knn_r_gt = calloc(ctx->size_x_trn * ctx->size_x_tst, sizeof(int));
 
     if(ctx->sp_gt) free(ctx->sp_gt);
     ctx->sp_gt = aligned_alloc(32, ctx->size_x_trn * ctx->size_x_tst * sizeof(double));
