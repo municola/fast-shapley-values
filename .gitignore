@@ -12,3 +12,4 @@ cifar-10-batches-py/
 *__pycache__*
 ../.vscode/
 */vscode
+.vscode/
