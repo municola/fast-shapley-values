@@ -952,7 +952,7 @@ void combined_knn_shapley_opt7(void *context_ptr) {
 }
 
 
-void combined_knn_shapley_opt(void *context_ptr) {
+void combined_knn_shapley_opt8(void *context_ptr) {
     /* opt8: Vectorized: Most inner + loop unrolling of second-most-inner + Sqrt*/
     /* Blocked Knn + optimized integratet shapley + normal integrated sorting + 8 Accumulators */
     /* Additionally, rely on aligned memory accesses */
@@ -1258,6 +1258,160 @@ void combined_knn_shapley_opt9(void *context_ptr) {
                         dist_vec = _mm256_add_pd(dist_vec, summed_entries);
 
                         // STORE
+                        _mm256_store_pd(dist + i1*train_length + j1, dist_vec);
+                    }
+                }
+            }
+            // Square root
+            for (int i2=i; i2<i+B; i2++) {
+                for (int j2=j; j2<j+B; j2+=4) {
+                    __m256d data = _mm256_load_pd(dist + i2*train_length + j2);
+                    __m256d result =  _mm256_sqrt_pd(data);
+                    _mm256_store_pd(dist + i2*train_length + j2, result);
+                }
+            }
+        }
+
+        // Shapley Computation + Sorting
+        // So far we have calculated M[i,:] to M[i+B,:] where M is the result Matrix (size=train*test)
+        for (int b=i; b<i+B; b++){
+            /* Sorting */
+            dist_gt_row = &context->dist_gt[b*train_length];
+            int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
+            for (int idx=0; idx<train_length; idx++) {
+                sorted_indexes[idx] = idx;
+            }
+            qsort(sorted_indexes, train_length, sizeof(int), compar_block);
+            // This memcpy is theoretically not needed
+            memcpy(context->x_test_knn_gt+(b*train_length), sorted_indexes, train_length*sizeof(int));
+
+            /* Shapley */
+            // Line 3 in algo
+            int a_N = sorted_indexes[train_length-1];
+            double y_test_j = y_tst[b];
+            double indicator = (y_trn[a_N] == y_test_j) ? 1.0 : 0.0;
+            sp_gt[b*train_length + a_N] = indicator * inv_train_length;
+            
+            // Calculate the shapley by moving from N-1 to 1 (loop line 4)
+            for (int sj=train_length-2; sj>-1; sj--) {
+                int x_test_knn_gt_i = sorted_indexes[sj];
+                int x_test_knn_gt_i_plus_one = sorted_indexes[sj+1];
+                double s_j_alpha_i_plus_1 = sp_gt[b*train_length + x_test_knn_gt_i_plus_one];
+                double difference = (double)(y_trn[x_test_knn_gt_i] == y_test_j) - 
+                                            (double)(y_trn[x_test_knn_gt_i_plus_one] == y_test_j);
+                sp_gt[b*train_length + sorted_indexes[sj]] = s_j_alpha_i_plus_1 + (difference * Kidx_const[sj]);                
+            }
+        }
+    }
+}
+
+void combined_knn_shapley_opt(void *context_ptr) {
+    /* opt10: Based on Opt8, now force FMA and unroll (hopefully) better */
+    context_t *context = (context_t *) context_ptr;
+    double curr_dist;
+    int B = 32;
+    int train_length = context->size_x_trn;
+    int test_length = context->size_x_tst;
+    int f_length = context->feature_len;
+    double *x_trn = context->x_trn;
+    double *x_tst = context->x_tst;
+    double *dist = context->dist_gt;
+    int* x_test_knn_gt = context->x_test_knn_gt;
+    double* y_trn = context->y_trn;
+    double* y_tst = context->y_tst;
+    double* sp_gt = context->sp_gt;
+    double K = context->K;
+    double inv_K = 1.0 / K;
+    double inv_train_length = 1.0/train_length;
+
+    assert(train_length % B == 0);
+    assert(test_length % B == 0);
+    assert(f_length % B == 0);
+    assert(B % 8 == 0);
+    assert(B % 4 == 0); // For vectorization
+
+    // Precompute the constant part from Line 5 in the Shapley algorithm
+    double* Kidx_const = (double*)malloc((train_length-1) * sizeof(double));
+    for (int i=1; i<train_length; i++) {
+        Kidx_const[i-1] = 1.0/i;
+    }
+    for (int i=0; i<K; i++){
+        Kidx_const[i] = 1.0/K;
+    }
+
+    for (int i=0; i<test_length; i+=B) {
+        for (int j=0; j<train_length; j+=B) {
+            // Calculate 1 Block in output matrix (Need to go through the multiple blocks
+            // from the other two matrices)
+            for (int k=0; k<f_length; k+=B) {
+                /* B x B Block Calculation */
+                for (int i1=i; i1<i+B; i1++){
+                    for (int j1=j; j1<j+B; j1+=4){
+                        // Note that array "a" does not change (not dependent on j1)
+                        // When we fixed the blocksize we could move it out of the for loop
+                        // and only read it once
+
+                        // Entry 1: dist[i1*train_length + j1]
+                        __m256d dist_acc03_e1 = _mm256_set1_pd(0.0);
+                        __m256d dist_acc47_e1 = _mm256_set1_pd(0.0);
+                        __m256d dist_acc03_e2 = _mm256_set1_pd(0.0);
+                        __m256d dist_acc47_e2 = _mm256_set1_pd(0.0);
+                        __m256d dist_acc03_e3 = _mm256_set1_pd(0.0);
+                        __m256d dist_acc47_e3 = _mm256_set1_pd(0.0);
+                        __m256d dist_acc03_e4 = _mm256_set1_pd(0.0);
+                        __m256d dist_acc47_e4 = _mm256_set1_pd(0.0);
+
+                        //preload for later
+                        __m256d dist_vec = _mm256_load_pd(dist + i1*train_length + j1);
+                        
+                        for (int k1=k; k1<k+B; k1+=8){
+                            __m256d a03_e1 = _mm256_load_pd((double *)(x_tst + i1*f_length + k1));
+                            __m256d a47_e1 = _mm256_load_pd((double *)(x_tst + i1*f_length + k1 + 4));
+
+                            __m256d b03_e1 = _mm256_load_pd((double *)(x_trn + (j1+0)*f_length + k1));
+                            __m256d b47_e1 = _mm256_load_pd((double *)(x_trn + (j1+0)*f_length + k1 + 4));
+                            __m256d b03_e2 = _mm256_load_pd((double *)(x_trn + (j1+1)*f_length + k1));
+                            __m256d b47_e2 = _mm256_load_pd((double *)(x_trn + (j1+1)*f_length + k1 + 4));
+                            __m256d b03_e3 = _mm256_load_pd((double *)(x_trn + (j1+2)*f_length + k1));
+                            __m256d b47_e3 = _mm256_load_pd((double *)(x_trn + (j1+2)*f_length + k1 + 4));
+                            __m256d b03_e4 = _mm256_load_pd((double *)(x_trn + (j1+3)*f_length + k1));
+                            __m256d b47_e4 = _mm256_load_pd((double *)(x_trn + (j1+3)*f_length + k1 + 4));
+
+                            __m256d a_sub_b_03_e1 = _mm256_sub_pd(a03_e1, b03_e1);
+                            __m256d a_sub_b_47_e1 = _mm256_sub_pd(a47_e1, b47_e1);
+                            dist_acc03_e1 = _mm256_fmadd_pd(a_sub_b_03_e1, a_sub_b_03_e1, dist_acc03_e1);
+                            dist_acc47_e1 = _mm256_fmadd_pd(a_sub_b_47_e1, a_sub_b_47_e1, dist_acc47_e1);
+
+                            __m256d a_sub_b_03_e2 = _mm256_sub_pd(a03_e1, b03_e2);
+                            __m256d a_sub_b_47_e2 = _mm256_sub_pd(a47_e1, b47_e2);
+                            dist_acc03_e2 = _mm256_fmadd_pd(a_sub_b_03_e2, a_sub_b_03_e2, dist_acc03_e2);
+                            dist_acc47_e2 = _mm256_fmadd_pd(a_sub_b_47_e2, a_sub_b_47_e2, dist_acc47_e2);
+
+                            __m256d a_sub_b_03_e3 = _mm256_sub_pd(a03_e1, b03_e3);
+                            __m256d a_sub_b_47_e3 = _mm256_sub_pd(a47_e1, b47_e3);
+                            dist_acc03_e3 = _mm256_fmadd_pd(a_sub_b_03_e3, a_sub_b_03_e3, dist_acc03_e3);
+                            dist_acc47_e3 = _mm256_fmadd_pd(a_sub_b_47_e3, a_sub_b_47_e3, dist_acc47_e3);
+
+                            __m256d a_sub_b_03_e4 = _mm256_sub_pd(a03_e1, b03_e4);
+                            __m256d a_sub_b_47_e4 = _mm256_sub_pd(a47_e1, b47_e4);
+                            dist_acc03_e4 = _mm256_fmadd_pd(a_sub_b_03_e4, a_sub_b_03_e4, dist_acc03_e4);
+                            dist_acc47_e4 = _mm256_fmadd_pd(a_sub_b_47_e4, a_sub_b_47_e4, dist_acc47_e4);
+                        }
+                        __m256d dist_acc07_e1 = _mm256_add_pd(dist_acc03_e1, dist_acc47_e1);
+                        __m256d dist_acc07_e2 = _mm256_add_pd(dist_acc03_e2, dist_acc47_e2);
+                        __m256d dist_acc07_e3 = _mm256_add_pd(dist_acc03_e3, dist_acc47_e3);
+                        __m256d dist_acc07_e4 = _mm256_add_pd(dist_acc03_e4, dist_acc47_e4);
+
+                        // Sum and Store
+                        __m256d summed_entries = _mm256_set_pd(
+                            vec_sum(dist_acc07_e4),
+                            vec_sum(dist_acc07_e3),
+                            vec_sum(dist_acc07_e2),
+                            vec_sum(dist_acc07_e1)
+                        );
+
+                        // Since its a "+=" we need to load->add->store, instead of only store
+                        dist_vec = _mm256_add_pd(dist_vec, summed_entries);
                         _mm256_store_pd(dist + i1*train_length + j1, dist_vec);
                     }
                 }
