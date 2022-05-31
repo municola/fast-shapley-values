@@ -1,5 +1,5 @@
 {
-    "label" : "op10_combined_shapley_fsize=2048",
+    "label" : "B=32_op10_combined_shapley_fsize=2048",
     "git_status" : "modified",
     "git_branch" : "master",
     "git_revision" : "a82490c",
