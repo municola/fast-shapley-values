@@ -357,6 +357,7 @@ class GETHandler(BaseHTTPRequestHandler):
                 12288: 64112343757
             }
 
+            last_y = []
             for i in ids:
                 runfile = runfiles[i]
                 x = runfile["input_sizes"]
@@ -367,12 +368,16 @@ class GETHandler(BaseHTTPRequestHandler):
                     cycles = median(runfile["benchmarks"][str(input_size)])
                     y.append(flops/cycles)
             
+                last_y.append(y[-1])
                 pyplot.plot(x, y, marker='^', label=runfile["label"])
             
             ax.legend()
             ax.set_xlabel("n (input size)")
             ax.set_ylabel("flops/cycle")
-            pyplot.title("Performance [assuming f_size=2048]")
+
+            speedup_caption = " (speedup on last y: {:.2f})".format(max(last_y)/min(last_y))
+            
+            pyplot.title("Performance [assuming f_size=2048]" + speedup_caption)
 
             tmp_path = tempfile.gettempdir() + "/asl_graph.png"
             pyplot.savefig(tmp_path, bbox_inches='tight')
