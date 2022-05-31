@@ -329,7 +329,7 @@ class GETHandler(BaseHTTPRequestHandler):
             pyplot.title("Runtime" + speedup_caption)
 
             tmp_path = tempfile.gettempdir() + "/asl_graph.png"
-            pyplot.savefig(tmp_path)
+            pyplot.savefig(tmp_path, bbox_inches='tight')
             self.wfile.write(open(tmp_path, "rb").read())
 
 
@@ -344,14 +344,26 @@ class GETHandler(BaseHTTPRequestHandler):
             ax.set_facecolor('#F2F2F2')
             ax.grid(color='#FFFFFF', linestyle='-', linewidth=1.25)
 
+
+            # hardcoded (measured) FLOPs per input size
+            # with a feature size of 2048
+            flops_per_input_size = {
+                192: 36662191,
+                384: 62847815,
+                768: 268652759,
+                1536: 1064017548,
+                3072: 4080291544,
+                6144: 16047186227,
+                12288: 64112343757
+            }
+
             for i in ids:
                 runfile = runfiles[i]
                 x = runfile["input_sizes"]
                 y = []
+
                 for input_size in x:
-                    x_trg = 10
-                    x_tst = 5
-                    flops = x_tst * (2 + (x_trg - 2) * 7)
+                    flops = flops_per_input_size[input_size]
                     cycles = median(runfile["benchmarks"][str(input_size)])
                     y.append(flops/cycles)
             
@@ -360,10 +372,10 @@ class GETHandler(BaseHTTPRequestHandler):
             ax.legend()
             ax.set_xlabel("n (input size)")
             ax.set_ylabel("flops/cycle")
-            pyplot.title("Performance")
+            pyplot.title("Performance [assuming f_size=2048]")
 
             tmp_path = tempfile.gettempdir() + "/asl_graph.png"
-            pyplot.savefig(tmp_path)
+            pyplot.savefig(tmp_path, bbox_inches='tight')
             self.wfile.write(open(tmp_path, "rb").read())
         
 
