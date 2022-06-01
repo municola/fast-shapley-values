@@ -76,6 +76,7 @@ void compute_single_unweighted_knn_class_shapley(void *context_ptr){
     }
 
     // print sp_gt array
+    #ifdef DEBUG
     printf("Exact: COMPLETE Shapley sp_gt: input_size: %d \n", context->input_size);
     for(int i=0; i<context->size_x_tst; i++){
         for(int j=0; j<context->size_x_trn; j++){
@@ -84,7 +85,6 @@ void compute_single_unweighted_knn_class_shapley(void *context_ptr){
         printf("\n");
     }
 
-    #ifdef DEBUG
     for (int i = 0; i < context->size_x_trn; i++) {
         double sum = 0;
         for (int j = 0; j < context->size_x_tst; j++) {
