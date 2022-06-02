@@ -1,0 +1,49 @@
+{
+    "label" : "combined_knn_shapley_opt-onlyKNN, fsize=2048 (Patrick)",
+    "git_status" : "modified",
+    "git_branch" : "fsize2048",
+    "git_revision" : "48ed268",
+    "compiler" : "gcc",
+    "compiler_flags" : "-std=c11 -Wall -lm -O3 -mavx -mavx2 -mfma -march=native",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz",
+    "turbo_boost_disabled" : true,
+    "arguments" : "-n 2 --label combined_knn_shapley_opt-onlyKNN, fsize=2048 (Patrick) ",
+    "implementation" : "exact",
+    "implementation_correct" : true,
+    "num_runs" : 2,
+    "num_input_sizes" : 7,
+    "input_sizes" : [128, 256, 512, 1024, 2048, 4096, 8192],
+
+
+    "benchmarks" : {
+        "128" : [
+            22658579,
+            22531591
+        ],
+        "256" : [
+            97099960,
+            95847585
+        ],
+        "512" : [
+            400785349,
+            396938022
+        ],
+        "1024" : [
+            1671939579,
+            1674217927
+        ],
+        "2048" : [
+            6645986829,
+            6620247597
+        ],
+        "4096" : [
+            27435576480,
+            27452105573
+        ],
+        "8192" : [
+            113101906564,
+            113955366854
+        ]
+    }
+}

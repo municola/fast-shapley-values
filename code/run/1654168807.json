@@ -1,0 +1,49 @@
+{
+    "label" : "Baseline KNN+Shapley, fsize=2048 (Patrick)",
+    "git_status" : "modified",
+    "git_branch" : "fsize2048",
+    "git_revision" : "a127e80",
+    "compiler" : "gcc",
+    "compiler_flags" : "-std=c11 -Wall -lm -O3 -mavx -mavx2 -mfma -march=native",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-1065G7 CPU @ 1.30GHz",
+    "turbo_boost_disabled" : true,
+    "arguments" : "-n 2 --label Baseline KNN+Shapley, fsize=2048 (Patrick) ",
+    "implementation" : "exact",
+    "implementation_correct" : true,
+    "num_runs" : 2,
+    "num_input_sizes" : 7,
+    "input_sizes" : [128, 256, 512, 1024, 2048, 4096, 8192],
+
+
+    "benchmarks" : {
+        "128" : [
+            157146890,
+            157620850
+        ],
+        "256" : [
+            631097822,
+            630014744
+        ],
+        "512" : [
+            2537214281,
+            2531619363
+        ],
+        "1024" : [
+            10124932225,
+            10128029204
+        ],
+        "2048" : [
+            40765627071,
+            41015107037
+        ],
+        "4096" : [
+            163301848997,
+            163445038541
+        ],
+        "8192" : [
+            655698090110,
+            656200711273
+        ]
+    }
+}
