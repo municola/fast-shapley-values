@@ -22,7 +22,7 @@ void init_context(context_t *ctx, int input_size){
     ctx->input_size = input_size;
 
     // must be divisible by the blocksize B
-    ctx->feature_len = 128;
+    ctx->feature_len = 2048;
     // ctx->num_test_samples = 500;
 
     assert(ctx->input_size % 2 ==0);

@@ -345,6 +345,7 @@ class GETHandler(BaseHTTPRequestHandler):
             ax.grid(color='#FFFFFF', linestyle='-', linewidth=1.25)
 
 
+            """
             # hardcoded (measured) FLOPs per input size
             # with a feature size of 2048
             flops_per_input_size = {
@@ -356,6 +357,20 @@ class GETHandler(BaseHTTPRequestHandler):
                 6144: 16047186227,
                 12288: 64112343757
             }
+
+            """
+
+            # Measured flops for combined_shapley_opt (incl. KNN)
+            flops_per_input_size = {
+                128: 464604746,
+                256: 811836343,
+                512: 1985700392,
+                1024: 7185529368,
+                2048: 28255560095,
+                4096: 112212657756,
+                8192: 447797474519,
+            }
+
 
             last_y = []
             for i in ids:

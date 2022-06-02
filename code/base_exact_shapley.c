@@ -18,10 +18,11 @@ uint64_t run_shapley(void *context) {
     context_t *ctx = (context_t *)context;
     uint64_t start_timer, end_timer;
 
-    get_true_exact_KNN(context);
     start_timer = start_tsc();
-    single_unweighted_knn_class_shapley_opt(context);
-    // compute_single_unweighted_knn_class_shapley(context);
+    //get_true_exact_KNN(context);
+    //single_unweighted_knn_class_shapley_opt(context);
+    //compute_single_unweighted_knn_class_shapley(context);
+    combined_knn_shapley_opt(context);
     end_timer = stop_tsc(start_timer);
 
     printf("Cycles: %lu\n", end_timer);
