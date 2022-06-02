@@ -360,7 +360,9 @@ class GETHandler(BaseHTTPRequestHandler):
 
             """
 
+            """
             # Measured flops for combined_shapley_opt (incl. KNN)
+            # fsize=2048
             flops_per_input_size = {
                 128: 464604746,
                 256: 811836343,
@@ -369,6 +371,20 @@ class GETHandler(BaseHTTPRequestHandler):
                 2048: 28255560095,
                 4096: 112212657756,
                 8192: 447797474519,
+            }
+            """
+
+
+            # Measured flops for combined_shapley_opt but only KNN, no shapley
+            # fsize = 2048
+            flops_per_input_size = {
+                128: 457848571,
+                256: 825577893,
+                512: 2016361343,
+                1024: 7282033358,
+                2048: 28661886811,
+                4096: 111889472491,
+                8192: 446836685523
             }
 
 
