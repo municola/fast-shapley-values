@@ -80,7 +80,7 @@ void knn__exact_opt(void *context_ptr) {
     /* opt8: Blocking(all+sqrt) + Accumulators*/
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
-    int B = 12;
+    int B = 32;
     int train_length = context->size_x_trn;
     int test_length = context->size_x_tst;
     int f_length = context->feature_len;
@@ -93,6 +93,8 @@ void knn__exact_opt(void *context_ptr) {
     assert(test_length % B == 0);
     assert(f_length % B == 0);
     assert(B % 4 == 0);
+
+    int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
 
     for (int i=0; i<test_length; i+=B) {
         for (int j=0; j<train_length; j+=B) {
@@ -145,13 +147,14 @@ void knn__exact_opt(void *context_ptr) {
     for (int i_tst=0; i_tst<test_length; i_tst++) {
         // get the indexes that would sort the array
         dist_gt_row = &context->dist_gt[i_tst*train_length];
-        int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
         for (int i=0; i<train_length; i++) {
             sorted_indexes[i] = i;
         }
         qsort(sorted_indexes, train_length, sizeof(int), compar_block);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
+
+    free(sorted_indexes);
 }
 
 
@@ -168,6 +171,8 @@ void knn__exact_opt7(void *context_ptr) {
     assert(train_length % B == 0);
     assert(test_length % B == 0);
     assert(f_length % B == 0);
+
+    int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
 
     for (int i=0; i<test_length; i+=B) {
         for (int j=0; j<train_length; j+=B) {
@@ -201,13 +206,15 @@ void knn__exact_opt7(void *context_ptr) {
     for (int i_tst=0; i_tst<test_length; i_tst++) {
         // get the indexes that would sort the array
         dist_gt_row = &context->dist_gt[i_tst*train_length];
-        int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
+        
         for (int i=0; i<train_length; i++) {
             sorted_indexes[i] = i;
         }
         qsort(sorted_indexes, train_length, sizeof(int), compar_block);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
+
+    free(sorted_indexes);
 }
 
 
@@ -224,6 +231,8 @@ void knn__exact_opt6(void *context_ptr) {
     assert(train_length % B == 0);
     assert(test_length % B == 0);
     assert(f_length % B == 0);
+
+    int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
 
     for (int i=0; i<test_length; i+=B) {
         for (int j=0; j<train_length; j+=B) {
@@ -254,13 +263,15 @@ void knn__exact_opt6(void *context_ptr) {
     for (int i_tst=0; i_tst<test_length; i_tst++) {
         // get the indexes that would sort the array
         dist_gt_row = &context->dist_gt[i_tst*train_length];
-        int* sorted_indexes = (int*)malloc(train_length * sizeof(int));
+
         for (int i=0; i<train_length; i++) {
             sorted_indexes[i] = i;
         }
         qsort(sorted_indexes, train_length, sizeof(int), compar_block);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
+
+    free(sorted_indexes);
 }
 
 
@@ -278,6 +289,7 @@ void knn__exact_opt5(void *context_ptr) {
     double *x_trn = context->x_trn;
     double *x_tst = context->x_tst;
 
+    int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
 
     // Loop through each test point
     for (int i_tst=0; i_tst<size_x_tst; i_tst++) {
@@ -325,7 +337,7 @@ void knn__exact_opt5(void *context_ptr) {
             context->dist_gt[i_trn] = curr_dist;
         }
         // get the indexes that would sort the array
-        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
+        
         for (int i=0; i<context->size_x_trn; i++) {
             sorted_indexes[i] = i;
         }
@@ -333,6 +345,8 @@ void knn__exact_opt5(void *context_ptr) {
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
+
+    free(sorted_indexes);
 }
 
 
@@ -343,6 +357,8 @@ void knn__exact_opt4(void *context_ptr) {
     double curr_dist;
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
     //dist_gt = (double*)calloc(size_x_trn, sizeof(double));
+
+    int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
 
     // Loop through each test point
     for (int i_tst=0; i_tst<context->size_x_tst; i_tst++) {
@@ -395,7 +411,7 @@ void knn__exact_opt4(void *context_ptr) {
             context->dist_gt[i_trn] = curr_dist;
         }
         // get the indexes that would sort the array
-        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
+
         for (int i=0; i<context->size_x_trn; i++) {
             sorted_indexes[i] = i;
         }
@@ -405,6 +421,8 @@ void knn__exact_opt4(void *context_ptr) {
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
+
+    free(sorted_indexes);
 }
 
 
@@ -414,6 +432,8 @@ void knn__exact_opt3(void *context_ptr) {
     double curr_dist;
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
     //dist_gt = (double*)calloc(size_x_trn, sizeof(double));
+
+    int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
 
     // Loop through each test point
     for (int i_tst=0; i_tst<context->size_x_tst; i_tst++) {
@@ -482,7 +502,7 @@ void knn__exact_opt3(void *context_ptr) {
             context->dist_gt[i_trn] = curr_dist;
         }
         // get the indexes that would sort the array
-        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
+        
         for (int i=0; i<context->size_x_trn; i++) {
             sorted_indexes[i] = i;
         }
@@ -492,6 +512,8 @@ void knn__exact_opt3(void *context_ptr) {
         // copy to result array
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
+
+    free(sorted_indexes);
 }
 
 
@@ -502,6 +524,8 @@ void knn__exact_opt2(void *context_ptr) {
     /* opt2: 4 Accumulators + accumulated sums*/
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
+
+    int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
 
     // Loop through each test point
     for (int i_tst=0; i_tst<context->size_x_tst; i_tst++) {
@@ -546,7 +570,7 @@ void knn__exact_opt2(void *context_ptr) {
             context->dist_gt[i_trn] = curr_dist;
         }
         // get the indexes that would sort the array
-        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
+        
         for (int i=0; i<context->size_x_trn; i++) {
             sorted_indexes[i] = i;
         }
@@ -554,6 +578,8 @@ void knn__exact_opt2(void *context_ptr) {
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
+
+    free(sorted_indexes);
 }
 
 
@@ -562,6 +588,9 @@ void knn__exact_opt1(void *context_ptr) {
     /* opt1: 4 Accumulators */
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
+
+    int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
+
     // Loop through each test point
     for (int i_tst=0; i_tst<context->size_x_tst; i_tst++) {
         // Loop through each train point
@@ -597,7 +626,7 @@ void knn__exact_opt1(void *context_ptr) {
             context->dist_gt[i_trn] = curr_dist;
         }
         // get the indexes that would sort the array
-        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
+        
         for (int i=0; i<context->size_x_trn; i++) {
             sorted_indexes[i] = i;
         }
@@ -605,6 +634,8 @@ void knn__exact_opt1(void *context_ptr) {
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
     }
+
+    free(sorted_indexes);
 }
 
 
@@ -619,6 +650,8 @@ void get_true_exact_KNN(void *context_ptr) {
     double curr_dist;
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
     //dist_gt = (double*)calloc(size_x_trn, sizeof(double));
+
+    int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
 
     // Loop through each test point
     for (int i_tst=0; i_tst<context->size_x_tst; i_tst++) {
@@ -636,7 +669,6 @@ void get_true_exact_KNN(void *context_ptr) {
             context->dist_gt[i_trn] = curr_dist;
         }
         // get the indexes that would sort the array
-        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
         for (int i=0; i<context->size_x_trn; i++) {
             sorted_indexes[i] = i;
         }
@@ -687,4 +719,6 @@ void get_true_exact_KNN(void *context_ptr) {
         debug_print("%s", "\n");   
         */
     }
+
+    free(sorted_indexes);
 }
