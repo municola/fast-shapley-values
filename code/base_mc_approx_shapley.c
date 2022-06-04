@@ -2276,7 +2276,7 @@ void opt12_compute_shapley_using_improved_mc_approach(void *context) {
 
     // initialize seq to [0, 1, 2, 3, 4, ..., N-1]
     for (int p = 0; p < size_x_trn; p+=8) {
-        _mm256_store_si256(seq+p, ind);
+        _mm256_store_si256(pi+p, ind);
         ind = _mm256_add_epi32(ind, incr);
     }
 
@@ -2294,7 +2294,7 @@ void opt12_compute_shapley_using_improved_mc_approach(void *context) {
 
         for (int t = 0; t < T; t++) {
             
-            memcpy(pi, seq, size_x_trn * sizeof(int));
+            //memcpy(pi, seq, size_x_trn * sizeof(int));
 
             // pi is now random permutation of [0, ..., N-1]
             avx_xorshift128plus_shuffle32(&mykey,pi,size_x_trn);
