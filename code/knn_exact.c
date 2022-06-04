@@ -647,12 +647,29 @@ void get_true_exact_KNN(void *context_ptr) {
                 debug_print("%f, ", dist_gt[j]);
             }
             debug_print("%s", "\n");
-
         */
+
+        // printf("get_true_exact_KNN: dist_gt:\n");
+        // for (int j = 0; j<context->size_x_trn;j++) {
+        //     printf("%f, ", context->dist_gt[j]);
+        // }
+        // printf("\n");
 
         // copy to result array
         qsort(sorted_indexes, context->size_x_trn, sizeof(int), compar);
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
+
+        // printf("get_true_exact_KNN: sorted_indexes:\n");
+        // for (int j = 0; j<context->size_x_trn;j++) {
+        //     printf("%d, ", sorted_indexes[j]);
+        // }
+        // printf("\n");
+
+        // printf("get_true_exact_KNN: y_trn:\n");
+        // for (int j = 0; j<context->size_x_trn;j++) {
+        //     printf("%f, ", context->y_trn[j]);
+        // }
+        // printf("\n");
 
         /*
         debug_print("%s", "Sorted Indexes\n");

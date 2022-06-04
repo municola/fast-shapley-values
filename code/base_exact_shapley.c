@@ -20,9 +20,11 @@ uint64_t run_shapley(void *context) {
 
     start_timer = start_tsc();
     //get_true_exact_KNN(context);
-    //single_unweighted_knn_class_shapley_opt(context);
+    // single_unweighted_knn_class_shapley_opt(context);
     //compute_single_unweighted_knn_class_shapley(context);
     combined_knn_shapley_opt(context);
+    // single_unweighted_knn_class_shapley_opt(context);
+    compute_single_unweighted_knn_class_shapley(context);
     end_timer = stop_tsc(start_timer);
 
     printf("Cycles: %lu\n", end_timer);
@@ -617,7 +619,8 @@ void single_unweighted_knn_class_shapley_opt8(void *context_ptr){
     //     }
     //     printf("\n");
     // }
-
+    free(Kidx_const);
+    free(ind_sub);
 }
 
 void single_unweighted_knn_class_shapley_opt9(void *context_ptr){
@@ -964,6 +967,12 @@ void single_unweighted_knn_class_shapley_opt12(void *context_ptr){
     //     printf("\n");
     // }
 
+    free(Kidx_const);
+    free(ind_sub0);
+    free(ind_sub1);
+    free(ind_sub2);
+    free(ind_sub3);
+
 }
 
 void single_unweighted_knn_class_shapley_opt13(void *context_ptr){
@@ -1081,6 +1090,8 @@ void single_unweighted_knn_class_shapley_opt13(void *context_ptr){
     //     }
     //     printf("\n");
     // }
+    free(Kidx_const);
+    free(ind_sub);
 
 }
 
@@ -1178,6 +1189,9 @@ void single_unweighted_knn_class_shapley_opt(void *context_ptr){
     //     }
     //     printf("\n");
     // }
+
+    free(Kidx_const);
+    free(ind_sub);
 
 }
 
