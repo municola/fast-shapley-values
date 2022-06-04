@@ -1794,7 +1794,7 @@ void combined_knn_shapley_opt(void *context_ptr) {
     assert(B % 8 == 0);
     assert(B % 4 == 0); // For vectorization
 
-    printf("\n-------------------------------\nRunning combined_knn_shapley_opt\n");
+    //printf("\n-------------------------------\nRunning combined_knn_shapley_opt\n");
 
     // Precompute the constant part from Line 5 in the Shapley algorithm
     double* Kidx_const = (double*)malloc((train_length-1) * sizeof(double));
