@@ -33,11 +33,12 @@ def measure_flops(args):
 
 
 print("flops_per_input_size = {")
-input_sizes = [128, 256, 512, 1024, 2048, 4096, 8192]
+input_sizes = [256*i for i in range(1, 8192//256+1)]
+#input_sizes = [128, 256, 512, 1024, 2048, 4096, 8192]
 for i in input_sizes:
     measured_flops = []
-    for run in range(3):
-        measured_flops.append(measure_flops(f"-i {i} -n 1"))
+    for run in range(2):
+        measured_flops.append(measure_flops(f"-i {i} -n 1 --impl approx"))
     
     m = median(measured_flops)
     print(f"    {i}: {m},")

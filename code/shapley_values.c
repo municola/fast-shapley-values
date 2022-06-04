@@ -15,7 +15,7 @@ run_variables_t run_variables = {
     .quiet = false,
     .label = NULL,
     .implementation = "exact",
-    .number_of_runs = 5,
+    .number_of_runs = 3,
     .number_of_input_sizes = 0,
     .input_sizes = NULL,
     .runfile_path = "",
@@ -38,9 +38,16 @@ int main(int argc, char *argv[]){
 
     // If no input sizes were specified, add some default powers of 2!
     if(run_variables.number_of_input_sizes == 0){
+        /*
         for(int i=7; i<14; i++){
             run_variables.input_sizes[run_variables.number_of_input_sizes++] = 1<<i;
         }
+        */
+
+        for(int i=1; i<8192/256; i++){
+            run_variables.input_sizes[run_variables.number_of_input_sizes++] = 256*i;
+        }
+
     }
 
     // Set the function pointers according to the implementation that should be measured
