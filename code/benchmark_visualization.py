@@ -143,7 +143,7 @@ main = """
 
         var impl_badge = '<span class="badge bg-secondary">' + runfile["implementation"] + '</span>&nbsp;&nbsp;';
         
-        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["label"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["label"] + '&nbsp;&nbsp;' + impl_badge + correct_badge + boost_badge + new_badge + '</td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["median_cycles"]  + '</td><td>' + runfile["num_runs"] + '</td></tr>';
+        return '<tr><th scope="row">' + i + '</th><td><input class="form-check-input" id="' + runfile["label"] + '" type="checkbox" value="" onclick="javascript:toggle_plot(\\\'' + runfile["name"] + '\\\');"></td><td>' + runfile["label"] + '&nbsp;&nbsp;' + impl_badge + correct_badge + boost_badge + new_badge + '</td><td>' + runfile["input_sizes"] + '</td><td>' + runfile["median_cycles"]  + '</td></tr>';
     }
 
     function do_runtime_plots() {
@@ -211,7 +211,6 @@ main = """
       <th scope="col">Name</th>
       <th scope="col">Input sizes</th>
       <th scope="col">Median of cycles (runtime)</th>
-      <th scope="col">Number of runs</th>
     </tr>
   </thead>
   <tbody id="runfiles">
