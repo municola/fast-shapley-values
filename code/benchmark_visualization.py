@@ -429,12 +429,17 @@ class GETHandler(BaseHTTPRequestHandler):
             last_y = []
             for i in ids:
                 runfile = runfiles[i]
-                x = runfile["input_sizes"]
+                x = []
                 y = []
 
-                for input_size in x:
+                for input_size in runfile["input_sizes"]:
+                    if int(input_size) < 1024:
+                        continue
+                    
                     flops = flops_per_input_size[input_size]
                     cycles = median(runfile["benchmarks"][str(input_size)])
+
+                    x.append(input_size)
                     y.append(flops/cycles)
             
                 last_y.append(y[-1])
