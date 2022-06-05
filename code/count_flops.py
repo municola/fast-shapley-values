@@ -1,11 +1,23 @@
 import subprocess
+import sys
 from statistics import median
 
+
+if len(sys.argv) == 1:
+    shapley_cmd = "./shapley_values"
+    impl = "exact"
+else:
+    shapley_cmd = sys.argv[1]
+    impl = sys.argv[2]
+
+
+print("shapley_cmd", shapley_cmd)
+print("impl", impl)
 
 def measure_flops(args):
     args = args.split()
     perf_str =  "perf stat -e cycles -e mem-loads -e mem-stores -e fp_arith_inst_retired.scalar_single -e fp_arith_inst_retired.scalar_double -e fp_arith_inst_retired.256b_packed_single -e fp_arith_inst_retired.scalar_single -e fp_arith_inst_retired.256b_packed_single -e fp_arith_inst_retired.256b_packed_double -e fp_arith_inst_retired.128b_packed_single -e fp_arith_inst_retired.128b_packed_double -e dTLB-load-misses -e dTLB-load -e dTLB-store-misses -e dTLB-stores -e L1-dcache-load-misses -e L1-dcache-loads"
-    perf_cmd = perf_str.split(" ") + ["./shapley_values"] + args
+    perf_cmd = perf_str.split(" ") + [shapley_cmd] + args
     proc = subprocess.run(perf_cmd, capture_output=True)
 
     perf_output = proc.stderr.decode("utf-8")
@@ -38,7 +50,7 @@ input_sizes = [256*i for i in range(1, 8192//256+1)]
 for i in input_sizes:
     measured_flops = []
     for run in range(2):
-        measured_flops.append(measure_flops(f"-i {i} -n 1 --impl approx"))
+        measured_flops.append(measure_flops(f"-i {i} -n 1 --impl {impl}"))
     
     m = median(measured_flops)
     print(f"    {i}: {m},")
