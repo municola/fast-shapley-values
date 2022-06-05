@@ -1,5 +1,5 @@
 {
-    "label" : "Final: combined_knn_shapley_opt",
+    "label" : "KNN (opt10) + Shapley (opt8)",
     "git_status" : "modified",
     "git_branch" : "master",
     "git_revision" : "7a5e2a5",
