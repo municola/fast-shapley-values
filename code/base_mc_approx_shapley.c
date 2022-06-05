@@ -354,8 +354,10 @@ uint64_t run_approx_shapley(void *context) {
     srand(0);
     knn__approx_opt5(ctx);
     start_timer = start_tsc();
-    opt8_compute_shapley_using_improved_mc_approach(ctx);
+    compute_shapley_using_improved_mc_approach(ctx);
+    //current_compute_shapley_using_improved_mc_approach(ctx);
     end_timer = stop_tsc(start_timer);
+    printf("Cycles: %lu\n", end_timer);
 
     return end_timer;
 }

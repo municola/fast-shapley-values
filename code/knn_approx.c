@@ -19,6 +19,8 @@ void get_true_approx_KNN(void *context_ptr) {
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     int* sorted_distances = (int *) malloc(context->size_x_trn * sizeof(int));
+    int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
+
     // This array gets defined in the outermost scope, such that the pointer is available in the compar function
     //dist_gt = (double*)calloc(size_x_trn, sizeof(double));
 
@@ -37,8 +39,8 @@ void get_true_approx_KNN(void *context_ptr) {
 
             context->dist_gt[i_trn] = curr_dist;
         }
+
         // get the indexes that would sort the array
-        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
         for (int i=0; i<context->size_x_trn; i++) {
             sorted_indexes[i] = i;
         }
@@ -64,6 +66,8 @@ void get_true_approx_KNN(void *context_ptr) {
         
     }
     
+    free(sorted_indexes);
+    free(sorted_distances);
     debug_print("%s", "Approx: Got KNN done :)\n\n");
 }
 
@@ -74,6 +78,7 @@ void knn__approx_opt5(void *context_ptr) {
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
     int* sorted_distances = (int *) malloc(context->size_x_trn * sizeof(int));
+    int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
 
     int feature_len = context->feature_len;
     int size_x_trn = context->size_x_trn;
@@ -81,7 +86,6 @@ void knn__approx_opt5(void *context_ptr) {
 
     double *x_trn = context->x_trn;
     double *x_tst = context->x_tst;
-
 
     // Loop through each test point
     for (int i_tst=0; i_tst<size_x_tst; i_tst++) {
@@ -129,7 +133,7 @@ void knn__approx_opt5(void *context_ptr) {
             context->dist_gt[i_trn] = curr_dist;
         }
         // get the indexes that would sort the array
-        int* sorted_indexes = (int*)malloc(context->size_x_trn * sizeof(int));
+        
         for (int i=0; i<context->size_x_trn; i++) {
             sorted_indexes[i] = i;
         }
@@ -144,5 +148,8 @@ void knn__approx_opt5(void *context_ptr) {
         memcpy(context->x_test_knn_gt+(i_tst * context->size_x_trn), sorted_indexes, context->size_x_trn * sizeof(int));
         memcpy(context->x_test_knn_r_gt+(i_tst * context->size_x_trn), sorted_distances, context->size_x_trn * sizeof(int));
     }
+
+    free(sorted_indexes);
+    free(sorted_distances);
 }
 

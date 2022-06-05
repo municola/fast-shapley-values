@@ -63,7 +63,7 @@ bool exact_correct(run_variables_t *run_variables, void *context) {
     init_context(test_ctx2, ctx->input_size);
 
     // replace both functions with whatever you want to test
-    get_true_exact_KNN((void*)test_ctx2);
+    combined_knn_shapley_opt((void*)test_ctx2);
     // printf("Second: x_test_knn_gt: input_size: %d \n", test_ctx2->input_size);
     // for(int i=0; i<test_ctx2->size_x_tst; i++){
     //     for(int j=0; j<test_ctx2->size_x_trn; j++){

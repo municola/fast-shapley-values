@@ -44,7 +44,7 @@ int main(int argc, char *argv[]){
         }
         */
 
-        for(int i=1; i<8192/256; i++){
+        for(int i=1; i<=6400/256; i++){
             run_variables.input_sizes[run_variables.number_of_input_sizes++] = 256*i;
         }
 

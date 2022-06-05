@@ -1603,7 +1603,7 @@ void combined_knn_shapley_opt9(void *context_ptr) {
     }
 }
 
-void combined_knn_shapley_opt10(void *context_ptr) {
+void combined_knn_shapley_opt(void *context_ptr) {
     /* opt10: Based on Opt8, now force FMA and unroll better */
     context_t *context = (context_t *) context_ptr;
     double curr_dist;
@@ -1629,13 +1629,13 @@ void combined_knn_shapley_opt10(void *context_ptr) {
     assert(B % 4 == 0); // For vectorization
 
     // Precompute the constant part from Line 5 in the Shapley algorithm
-    double* Kidx_const = (double*)malloc((train_length-1) * sizeof(double));
-    for (int i=1; i<train_length; i++) {
-        Kidx_const[i-1] = 1.0/i;
-    }
-    for (int i=0; i<K; i++){
-        Kidx_const[i] = 1.0/K;
-    }
+    // double* Kidx_const = (double*)malloc((train_length-1) * sizeof(double));
+    // for (int i=1; i<train_length; i++) {
+    //     Kidx_const[i-1] = 1.0/i;
+    // }
+    // for (int i=0; i<K; i++){
+    //     Kidx_const[i] = 1.0/K;
+    // }
 
     for (int i=0; i<test_length; i+=B) {
         for (int j=0; j<train_length; j+=B) {
@@ -1737,27 +1737,27 @@ void combined_knn_shapley_opt10(void *context_ptr) {
             // This memcpy is theoretically not needed
             memcpy(context->x_test_knn_gt+(b*train_length), sorted_indexes, train_length*sizeof(int));
 
-            /* Shapley */
-            // Line 3 in algo
-            int a_N = sorted_indexes[train_length-1];
-            double y_test_j = y_tst[b];
-            double indicator = (y_trn[a_N] == y_test_j) ? 1.0 : 0.0;
-            sp_gt[b*train_length + a_N] = indicator * inv_train_length;
+            // /* Shapley */
+            // // Line 3 in algo
+            // int a_N = sorted_indexes[train_length-1];
+            // double y_test_j = y_tst[b];
+            // double indicator = (y_trn[a_N] == y_test_j) ? 1.0 : 0.0;
+            // sp_gt[b*train_length + a_N] = indicator * inv_train_length;
             
-            // Calculate the shapley by moving from N-1 to 1 (loop line 4)
-            for (int sj=train_length-2; sj>-1; sj--) {
-                int x_test_knn_gt_i = sorted_indexes[sj];
-                int x_test_knn_gt_i_plus_one = sorted_indexes[sj+1];
-                double s_j_alpha_i_plus_1 = sp_gt[b*train_length + x_test_knn_gt_i_plus_one];
-                double difference = (double)(y_trn[x_test_knn_gt_i] == y_test_j) - 
-                                            (double)(y_trn[x_test_knn_gt_i_plus_one] == y_test_j);
-                sp_gt[b*train_length + sorted_indexes[sj]] = s_j_alpha_i_plus_1 + (difference * Kidx_const[sj]);                
-            }
+            // // Calculate the shapley by moving from N-1 to 1 (loop line 4)
+            // for (int sj=train_length-2; sj>-1; sj--) {
+            //     int x_test_knn_gt_i = sorted_indexes[sj];
+            //     int x_test_knn_gt_i_plus_one = sorted_indexes[sj+1];
+            //     double s_j_alpha_i_plus_1 = sp_gt[b*train_length + x_test_knn_gt_i_plus_one];
+            //     double difference = (double)(y_trn[x_test_knn_gt_i] == y_test_j) - 
+            //                                 (double)(y_trn[x_test_knn_gt_i_plus_one] == y_test_j);
+            //     sp_gt[b*train_length + sorted_indexes[sj]] = s_j_alpha_i_plus_1 + (difference * Kidx_const[sj]);                
+            // }
         }
     }
 }
 
-void combined_knn_shapley_opt(void *context_ptr) {
+void combined_knn_shapley_opt11(void *context_ptr) {
     /* opt11: Based on Opt10
     Redefine input for shapley computation
     Instead of sorting indexes and accessing y_trn through pointer chasing
@@ -1794,7 +1794,7 @@ void combined_knn_shapley_opt(void *context_ptr) {
     assert(B % 8 == 0);
     assert(B % 4 == 0); // For vectorization
 
-    printf("\n-------------------------------\nRunning combined_knn_shapley_opt\n");
+    //printf("\n-------------------------------\nRunning combined_knn_shapley_opt\n");
 
     // Precompute the constant part from Line 5 in the Shapley algorithm
     double* Kidx_const = (double*)malloc((train_length-1) * sizeof(double));
