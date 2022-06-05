@@ -96,6 +96,13 @@ header = """
     </div>
   </div>
 </nav>
+
+<div class="alert alert-info" role="alert">
+<b>Please note:</b> FLOP data needs to be manually set and is
+therefore not generally available. Performance plots are only correct for the
+(exact) KNN optimizations.
+</div>
+
 """
 
 
@@ -190,7 +197,6 @@ main = """
 </script>
 
 
-<br><br>
 <h5>Select plot mode</h5>
 <span class="btn btn-secondary" onclick="javascript:do_runtime_plots()">Runtime plots</span>
 <span class="btn btn-secondary" onclick="javascript:do_performance_plots()">Performance plots</span><br><br>
