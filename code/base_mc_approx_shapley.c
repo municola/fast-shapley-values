@@ -354,7 +354,7 @@ uint64_t run_approx_shapley(void *context) {
     srand(0);
     knn__approx_opt5(ctx);
     start_timer = start_tsc();
-    opt12_compute_shapley_using_improved_mc_approach(ctx);
+    opt8_compute_shapley_using_improved_mc_approach(ctx);
     end_timer = stop_tsc(start_timer);
 
     return end_timer;
@@ -1616,6 +1616,7 @@ void opt8_compute_shapley_using_improved_mc_approach(void *context) {
     free(phi);
     free(pi);
     free(seq);
+    free(trn_tst);
 
     return;
 }
