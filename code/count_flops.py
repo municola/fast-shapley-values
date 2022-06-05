@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import tqdm
 from statistics import median
 
 
@@ -44,19 +45,21 @@ def measure_flops(args):
 
 
 
-print("flops_per_input_size = {")
+out = "flops_per_input_size = {\n"
 input_sizes = [256*i for i in range(1, 8192//256+1)]
 #input_sizes = [128, 256, 512, 1024, 2048, 4096, 8192]
-for i in input_sizes:
+
+for i in tqdm.tqdm(input_sizes):
     measured_flops = []
     for run in range(2):
         measured_flops.append(measure_flops(f"-i {i} -n 1 --impl {impl}"))
     
     m = median(measured_flops)
-    print(f"    {i}: {m},")
+    out += f"    {i}: {m},\n"
 
-print("}")
+out += "}\n"
 
+print(out)
 
 #print("Arguments: ./shapley_values ", end="")
 #print("Flops: ", measure_flops(input()))
