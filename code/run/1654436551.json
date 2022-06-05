@@ -1,5 +1,5 @@
 {
-    "label" : "Final: combined_knn_shapley_opt_knn_only",
+    "label" : "KNN Block.+Acc.+Vect.",
     "git_status" : "modified",
     "git_branch" : "master",
     "git_revision" : "7a5e2a5",

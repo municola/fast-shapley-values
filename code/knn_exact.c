@@ -76,7 +76,7 @@ void knn_exact_base(void *context_ptr) {
 }
 
 
-void knn__exact_opt(void *context_ptr) {
+void knn__exact_opt8(void *context_ptr) {
     /* opt8: Blocking(all+sqrt) + Accumulators*/
     context_t *context = (context_t *) context_ptr;
     double curr_dist;

@@ -345,49 +345,91 @@ class GETHandler(BaseHTTPRequestHandler):
             ax.grid(color='#FFFFFF', linestyle='-', linewidth=1.25)
 
 
-            """
-            # hardcoded (measured) FLOPs per input size
-            # with a feature size of 2048
-            flops_per_input_size = {
-                192: 36662191,
-                384: 62847815,
-                768: 268652759,
-                1536: 1064017548,
-                3072: 4080291544,
-                6144: 16047186227,
-                12288: 64112343757
-            }
 
-            """
 
+            
             """
-            # Measured flops for combined_shapley_opt (incl. KNN)
+            # Measured flops for combined_knn_shapley_opt (incl. KNN)
             # fsize=2048
             flops_per_input_size = {
-                128: 464604746,
-                256: 811836343,
-                512: 1985700392,
-                1024: 7185529368,
-                2048: 28255560095,
-                4096: 112212657756,
-                8192: 447797474519,
+                256: 988787722.5,
+                512: 2306199717.0,
+                768: 4552783174.0,
+                1024: 7558671523.0,
+                1280: 11452999520.0,
+                1536: 15886071111.5,
+                1792: 21178901528.0,
+                2048: 28407232030.5,
+                2304: 35790876296.5,
+                2560: 44297747210.0,
+                2816: 53267698662.5,
+                3072: 63361588574.5,
+                3328: 74079016382.0,
+                3584: 87117165072.0,
+                3840: 97033511518.0,
+                4096: 112495127061.5,
+                4352: 126863856338.0,
+                4608: 141662306489.0,
+                4864: 158519563926.5,
+                5120: 175211152093.0,
+                5376: 192096612807.5,
+                5632: 211809505841.5,
+                5888: 231551384138.0,
+                6144: 252365638445.5,
+                6400: 273376111003.0,
+                6656: 295685940731.5,
+                6912: 319065620876.0,
+                7168: 351751861224.5,
+                7424: 367939920581.5,
+                7680: 393364166482.5,
+                7936: 420424704965.0,
+                8192: 447644420964.0,
             }
             """
 
 
+            
             # Measured flops for combined_shapley_opt but only KNN, no shapley
             # fsize = 2048
             flops_per_input_size = {
-                128: 457848571,
-                256: 825577893,
-                512: 2016361343,
-                1024: 7282033358,
-                2048: 28661886811,
-                4096: 111889472491,
-                8192: 446836685523
+                256: 968388566,
+                512: 2362149196,
+                768: 4577232434,
+                1024: 7552055390,
+                1280: 11364591176,
+                1536: 16097581073,
+                1792: 21425685747,
+                2048: 28097029330,
+                2304: 35840395782,
+                2560: 44085380478,
+                2816: 53353882845,
+                3072: 62934197937,
+                3328: 74654523548,
+                3584: 86878081347,
+                3840: 96752826826,
+                4096: 112118307320,
+                4352: 126644757825,
+                4608: 141527941701,
+                4864: 158008989974,
+                5120: 175112120131,
+                5376: 193799109636,
+                5632: 211823563799,
+                5888: 230945947478,
+                6144: 251985088690,
+                6400: 273248801847,
+                6656: 295238518804,
+                6912: 319093974833,
+                7168: 341092200761,
+                7424: 367005191700,
+                7680: 393023906163,
+                7936: 419880370295,
+                8192: 447407015180,
             }
 
+        
 
+
+            """
             # Measured flops for approx shapley without approx knn
             # fsize = 2048
             flops_per_input_size = {
@@ -424,8 +466,10 @@ class GETHandler(BaseHTTPRequestHandler):
                 7936: 387511156247 - 387422011913,
                 8192: 412767740741 - 412561114824,
             }
+            """
 
 
+            last_x = 0
             last_y = []
             for i in ids:
                 runfile = runfiles[i]
@@ -442,16 +486,20 @@ class GETHandler(BaseHTTPRequestHandler):
                     x.append(input_size)
                     y.append(flops/cycles)
             
+                last_x = runfile["input_sizes"][-1]
                 last_y.append(y[-1])
                 pyplot.plot(x, y, marker='^', label=runfile["label"])
             
             ax.legend()
             ax.set_xlabel("n (input size)")
             ax.set_ylabel("flops/cycle")
+            #ax.set_xscale('log', base=2)
 
-            speedup_caption = " (speedup: {:.2f})".format(max(last_y)/min(last_y))
+            speedup_caption = " (speedup at n={}: {:.2f}x)".format(last_x, max(last_y)/min(last_y))
             
             pyplot.title("Performance " + speedup_caption)
+            #pyplot.suptitle("Performance " + speedup_caption)
+            #pyplot.title(runfile["cpu"])
 
             tmp_path = tempfile.gettempdir() + "/asl_graph.png"
             pyplot.savefig(tmp_path, bbox_inches='tight')
