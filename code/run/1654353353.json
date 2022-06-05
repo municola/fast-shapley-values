@@ -1,0 +1,56 @@
+{
+    "label" : "python_KNN+shapley_fsize=2048(CHRIS)",
+    "git_status" : "modified",
+    "git_branch" : "master",
+    "git_revision" : "85d7fe7",
+    "compiler" : "python",
+    "compiler_flags" : "python",
+    "debug" : false,
+    "cpu" : "Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz",
+    "turbo_boost_disabled" : true,
+    "arguments" : "-n 5 -i 256 -i 512 -i 768 -i 1024 -i 1280 -i 1536 -i 1792 -i 2048 -i 2304 -i 2560 -i 2816 -i 3072 -i 3328 -i 3584 -i 3840 -i 4096 -i 4352 -i 4608 -i 4864 -i 5120 -i 5376 -i 5632 -i 5888 -i 6144 -i 6400 --label baseline_KNN+shapley_fsize=2048",
+    "implementation" : "exact",
+    "implementation_correct" : true,
+    "num_runs" : 5,
+    "num_input_sizes" : 7,
+    "input_sizes" : [192, 384, 768, 1526, 3072],
+
+    "benchmarks": {
+        "192": [
+            1551179986,
+            1568754045,
+            1570457554,
+            1546558453,
+            1557550639
+        ],
+        "384": [
+            6184576103,
+            6200905127,
+            6187190625,
+            6177316957,
+            6533653642
+        ],
+        "768": [
+            25286622483,
+            24874185738,
+            24787323513,
+            24941412783,
+            24996419422
+        ],
+        "1526": [
+            98401398429,
+            100079336887,
+            98705227989,
+            99467025366,
+            98986484556
+        ],
+        "3072": [
+            406071191221,
+            400818122226,
+            684187744674,
+            413040660512,
+            401983219195
+        ]
+    }
+   
+}
