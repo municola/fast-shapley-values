@@ -1,4 +1,4 @@
-# Advanced Systems Lab - Fast and efficient data valuation - Team 12 [[PDF](https://gitlab.inf.ethz.ch/COURSE-ASL/asl22/team12/-/tree/master/12_report.pdf)]
+# Implementing fast vectorized single-core shapley value calculation [[PDF](https://github.com/municola/fast-shapley-values/edit/master/12_report.pdf)]
 
 ## Dataset
 As described by Jia et al. [1] we extract the features from ResNet and save them as binaries. Download the already prepared dataset her:
